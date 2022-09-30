@@ -1,0 +1,50 @@
+# ADJUST THESE DATABASE SETTINGS AS NECESSARY.
+database:
+  ==: vg.civcraft.mc.civmodcore.dao.DatabaseCredentials
+  host: localhost
+  port: 3306
+  db: minecraft
+  poolSize: 1
+  user: mc
+  pass: mc
+  connection_timeout: 10000
+  idle_timeout: 600000
+  max_lifetime: 7200000
+
+# The number of prints allowed to occupy one block
+max_prints_per_block: 5
+items:
+
+
+# ALL CHANCES ARE 0-1 PERCENTAGE
+reason_settings:
+  #complete
+  trespassing:
+    bastion_types: [vault]
+    chance: 0.05
+  #complete
+  rummaging:
+    # Locked = reinforced, unlocked = not reinforced
+    locked_chance: 0.07
+    unlocked_chance: 0.02
+  #complete
+  theft:
+    locked_chance: 0.07
+    unlocked_chance: 0.02
+  #complete
+  assault:
+    pvp_chance: 0.1
+    pve_chance: 0.02
+    player_allowed_on_bastion_multiplier: 0.8
+    ignore_bastion_for_pvp: true
+  #complete
+  murder:
+    pvp_chance: 1
+    pve_chance: 0.1
+    player_allowed_on_bastion_multiplier: 0.8
+    ignore_bastion_for_pvp: true
+  #complete
+  vandalism:
+    bastion_break_chance: 0.33
+    block_break_chance: 0.05
+    ignore_break_if_on_bastion: true

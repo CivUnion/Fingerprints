@@ -1,0 +1,12 @@
+name: ${name}
+main: com.github.longboyy.fingerprints.Fingerprints
+author: Longboyy
+version: ${version}
+depend: [CivModCore, Bastion]
+api-version: 1.17
+commands:
+  fpreload:
+    permission: fingerprints.reload
+permissions:
+  fingerprints.reload:
+    default: op
