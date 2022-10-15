@@ -1,5 +1,5 @@
 name: ${name}
-main: com.github.longboyy.fingerprints.Fingerprints
+main: com.github.longboyy.fingerprints.FingerprintPlugin
 author: Longboyy
 version: ${version}
 depend: [CivModCore, Bastion]

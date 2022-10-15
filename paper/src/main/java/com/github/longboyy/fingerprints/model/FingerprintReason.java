@@ -1,10 +1,8 @@
 package com.github.longboyy.fingerprints.model;
 
-import com.destroystokyo.paper.ParticleBuilder;
-import com.github.longboyy.fingerprints.util.FingerprintUtils;
-import org.apache.commons.lang.mutable.MutableInt;
+import com.github.longboyy.fingerprints.FingerprintPlugin;
+import com.github.longboyy.fingerprints.util.ParticleUtils;
 import org.bukkit.Location;
-import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.HashMap;
@@ -21,7 +19,7 @@ public enum FingerprintReason {
 		}
 
 		return result;
-	}, FingerprintUtils::spawnDustParticle),
+	}, ParticleUtils::spawnDustParticle),
 
 	// Trespassing in a vault bastion field may result in trespassing.
 	TRESPASSING("Trespassing", conf -> {
@@ -32,7 +30,7 @@ public enum FingerprintReason {
 		}
 
 		return result;
-	}, FingerprintUtils::spawnDustParticle),
+	}, ParticleUtils::spawnDustParticle),
 
 	// Attempting to open a container (regardless of any locks) may result in rummaging
 	/**
@@ -46,7 +44,7 @@ public enum FingerprintReason {
 		}
 
 		return result;
-	}, FingerprintUtils::spawnDustParticle),
+	}, ParticleUtils::spawnDustParticle),
 
 	// Attempting to take an item from a container, or take an item from an item frame or armor stand may result in theft.
 	THEFT("Theft", conf -> {
@@ -57,7 +55,7 @@ public enum FingerprintReason {
 		}
 
 		return result;
-	}, FingerprintUtils::spawnDustParticle),
+	}, ParticleUtils::spawnDustParticle),
 
 	// Hitting another player or their pet may result in assault.
 	ASSAULT("Assault", conf -> {
@@ -70,7 +68,7 @@ public enum FingerprintReason {
 		}
 
 		return result;
-	}, FingerprintUtils::spawnDustParticle),
+	}, ParticleUtils::spawnDustParticle),
 
 	// Killing another player or their pet may result in murder. (Always apply murder when player killed)
 	MURDER("Murder", conf -> {
@@ -83,7 +81,7 @@ public enum FingerprintReason {
 		}
 
 		return result;
-	}, FingerprintUtils::spawnDustParticle),
+	}, ParticleUtils::spawnDustParticle),
 
 	// Breaking any block or bastion may result in vandalism.
 	VANDALISM("Vandalism", conf -> {
@@ -95,7 +93,7 @@ public enum FingerprintReason {
 		}
 
 		return result;
-	}, FingerprintUtils::spawnDustParticle);
+	}, ParticleUtils::spawnDustParticle);
 
 	protected final String prettyName;
 
@@ -140,7 +138,7 @@ public enum FingerprintReason {
 
 	public <T> T getSetting(String key, T defaultValue){
 		T value = this.getSetting(key);
-		FingerprintUtils.log(String.format("SETTING %s - NULL: %s", key, value == null));
+		FingerprintPlugin.log(String.format("SETTING %s[%s]", key, value == null ? null : value.toString()));
 		return value == null ? defaultValue : value;
 	}
 

@@ -1,25 +1,34 @@
 package com.github.longboyy.fingerprints.model;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
+import vg.civcraft.mc.civmodcore.inventory.items.ItemUtils;
 import vg.civcraft.mc.civmodcore.world.locations.chunkmeta.block.table.TableBasedDataObject;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class Fingerprint {
 
+	private static SimpleDateFormat FORMATTER = new SimpleDateFormat("EEE, MMM d, ''yy");
+
 	protected int id = -1;
+	protected Vector offset;
 	private final Location location;
 	private final long createdAt;
 	private final UUID playerId;
 	private final FingerprintReason reason;
 	private final Map<String, Object> metadata;
 
-	public Fingerprint(int id, Location location, long creationTime, UUID playerId, FingerprintReason reason, Map<String, Object> metadata){
+	public Fingerprint(int id, Location location, long creationTime, UUID playerId, FingerprintReason reason, Vector offset, Map<String, Object> metadata){
 		//this(location, creationTime, playerId, true);
 		this(location, creationTime, playerId, reason, metadata);
 		this.id = id;
+		this.offset = offset;
 	}
 
 	public Fingerprint(Location location, long creationTime, UUID playerId, FingerprintReason reason){
@@ -50,6 +59,10 @@ public class Fingerprint {
 	}
 	 */
 
+	public Vector getOffset(){
+		return this.offset.clone();
+	}
+
 	public Map<String, Object> getMetadata(){
 		return this.metadata;
 	}
@@ -75,7 +88,7 @@ public class Fingerprint {
 	}
 
 	public String getVagueTime(){
-		long timeSinceMillis = this.createdAt - System.currentTimeMillis();
+		long timeSinceMillis = System.currentTimeMillis() - this.createdAt;
 		float timeSinceSecs = timeSinceMillis / 1000L;
 		// 15 mins
 		if(timeSinceSecs <= 900){
@@ -92,5 +105,27 @@ public class Fingerprint {
 		}else{
 			return "More than a day ago";
 		}
+	}
+
+	public ItemStack asItem(){
+		String collectDate = FORMATTER.format(new Date());
+
+		ItemStack itemStack = new ItemStack(Material.PAPER);
+		//String hashString = Hashing.sha256().hashString(fingerprint.getPlayerId().toString()+".test", StandardCharsets.UTF_8).toString();
+		UUID fpUUID = UUID.nameUUIDFromBytes((this.getPlayerId().toString() + ".test").getBytes());
+		List<Component> lore = new ArrayList<>();
+		//Splitter.fixedLength(16).split(hashString).forEach(str -> lore.add(Component.text(str)));
+		lore.add(Component.text("Fingerprint"));
+		lore.add(Component.text(fpUUID.toString()));
+		lore.add(Component.empty());
+		lore.add(Component.text("Location:"));
+		Location loc = this.getLocation();
+		lore.add(Component.text(String.format("X: %d, Y: %d, Z: %d", loc.getBlockX(), loc.getBlockY(), loc.getBlockZ())));
+		lore.add(Component.text(String.format("Collected on: %s", collectDate)));
+		lore.add(Component.text(String.format("Created: %s", this.getVagueTime())));
+		lore.add(Component.text(String.format("Reason: %s", this.getReason().getPrettyName())));
+		ItemUtils.setComponentDisplayName(itemStack, Component.text("Fingerprint").color(TextColor.color(175,175,175)));
+		ItemUtils.setComponentLore(itemStack, lore);
+		return itemStack;
 	}
 }

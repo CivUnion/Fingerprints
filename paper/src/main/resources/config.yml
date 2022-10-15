@@ -14,7 +14,26 @@ database:
 # The number of prints allowed to occupy one block
 max_prints_per_block: 5
 items:
-
+  duster:
+    material: WOODEN_SWORD
+    name: Fingerprint Duster
+    lore:
+      - 'A feather duster used to find fingerprints'
+      - '[!] Requires ink'
+    uses: 10
+  ink:
+    material: WOODEN_SWORD
+    name: Inkwell
+    lore:
+      - 'Ink applied to surfaces to find fingerprints'
+      - '[!] Requires a duster'
+    uses: 5
+  magnifying_glass:
+    material: STICK
+    name: Magnifying Glass
+    lore:
+      - 'Memories of burning ants'
+      - 'This could be used to see fingerprints'
 
 # ALL CHANCES ARE 0-1 PERCENTAGE
 reason_settings:

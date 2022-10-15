@@ -1,6 +1,7 @@
 plugins {
     `java-library`
     `maven-publish`
+	id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 // Temporary hack:
@@ -18,6 +19,7 @@ allprojects {
 subprojects {
 	apply(plugin = "java-library")
 	apply(plugin = "maven-publish")
+	apply(plugin = "com.github.johnrengelman.shadow")
 
 	java {
 		toolchain {

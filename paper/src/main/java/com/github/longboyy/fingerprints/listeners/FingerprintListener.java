@@ -1,9 +1,6 @@
 package com.github.longboyy.fingerprints.listeners;
 
-import com.github.longboyy.fingerprints.FingerprintManager;
-import com.github.longboyy.fingerprints.Fingerprints;
-import com.github.longboyy.fingerprints.model.Fingerprint;
-import com.github.longboyy.fingerprints.model.FingerprintContainer;
+import com.github.longboyy.fingerprints.FingerprintPlugin;
 import com.github.longboyy.fingerprints.model.FingerprintReason;
 import com.github.longboyy.fingerprints.util.FingerprintUtils;
 import isaac.bastion.Bastion;
@@ -11,22 +8,16 @@ import isaac.bastion.BastionBlock;
 import isaac.bastion.event.BastionDamageEvent;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
 import org.bukkit.block.Container;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -34,19 +25,14 @@ import vg.civcraft.mc.citadel.Citadel;
 import vg.civcraft.mc.citadel.CitadelPermissionHandler;
 import vg.civcraft.mc.citadel.model.Reinforcement;
 import vg.civcraft.mc.civmodcore.events.PlayerMoveBlockEvent;
-import vg.civcraft.mc.namelayer.permission.PermissionType;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.util.*;
 
-public class PlayerListener implements Listener {
+public class FingerprintListener implements Listener {
 
-	private final Fingerprints plugin;
+	private final FingerprintPlugin plugin;
 
-	public PlayerListener(Fingerprints plugin){
+	public FingerprintListener(FingerprintPlugin plugin){
 		this.plugin = plugin;
 	}
 
@@ -59,7 +45,7 @@ public class PlayerListener implements Listener {
 
 	private static void handleMurderAssault(FingerprintReason reason, Player player, LivingEntity victim){
 		if(reason == null || player == null || victim == null){
-			FingerprintUtils.log("MURDER/ASSAULT - REASON, PLAYER, OR VICTIM IS NULL");
+			FingerprintPlugin.log("MURDER/ASSAULT - REASON, PLAYER, OR VICTIM IS NULL");
 			return;
 		}
 
@@ -70,15 +56,15 @@ public class PlayerListener implements Listener {
 		}else if(victim instanceof Player){
 			baseChance = reason.getSetting("pvp_chance", 0.1D);
 		}else{
-			FingerprintUtils.log("MURDER/ASSAULT - NO VALID VICTIM");
+			FingerprintPlugin.log("MURDER/ASSAULT - NO VALID VICTIM");
 			return;
 		}
 
 		Location loc = FingerprintUtils.getClosestNonAir(victim.getLocation());
 		Set<BastionBlock> bastions = Bastion.getBastionManager().getBlockingBastions(loc);
-		double allowedOnBastionMult = reason.getSetting("player_allowed_on_bastion_multiplier", 0.8D);
 
 		if(bastions.size() > 0) {
+			double allowedOnBastionMult = reason.getSetting("player_allowed_on_bastion_multiplier", 0.8D);
 			for (BastionBlock bastion : bastions) {
 				if (bastion.canPlace(player)){
 					double chance = baseChance;
@@ -90,14 +76,14 @@ public class PlayerListener implements Listener {
 					if(FingerprintUtils.checkChance(chance)) {
 						createMurderAssaultFingerprint(reason, loc, player, victim);
 					}else{
-						FingerprintUtils.log("MURDER - FAILED CHANCE");
+						FingerprintPlugin.log("MURDER - FAILED CHANCE");
 					}
 				}
 			}
 		}else if(FingerprintUtils.checkChance(baseChance)){
 			createMurderAssaultFingerprint(reason, loc, player, victim);
 		}else{
-			FingerprintUtils.log("MURDER/ASSAULT - FAILED CHANCE");
+			FingerprintPlugin.log("MURDER/ASSAULT - FAILED CHANCE");
 		}
 	}
 
@@ -178,7 +164,7 @@ public class PlayerListener implements Listener {
 
 		if(!(event.getEntity() instanceof LivingEntity damaged) ||
 				!(event.getDamager() instanceof Player damager)){
-			FingerprintUtils.log("ASSAULT - NO DAMAGED OR DAMAGER");
+			FingerprintPlugin.log("ASSAULT - NO DAMAGED OR DAMAGER");
 			return;
 		}
 
@@ -194,7 +180,7 @@ public class PlayerListener implements Listener {
 		LivingEntity killed = event.getEntity();
 		Player killer = event.getEntity().getKiller();
 		if(killer == null){
-			FingerprintUtils.log("MURDER - NO KILLER");
+			FingerprintPlugin.log("MURDER - NO KILLER");
 			return;
 		}
 
@@ -228,7 +214,7 @@ public class PlayerListener implements Listener {
 		if(FingerprintUtils.checkChance(chance)) {
 			FingerprintUtils.addFingerprint(loc, player, FingerprintReason.RUMMAGING);
 		}else{
-			FingerprintUtils.log("RUMMAGE CONTAINER - FAILED CHANCE: " + chance);
+			FingerprintPlugin.log("RUMMAGE CONTAINER - FAILED CHANCE: " + chance);
 		}
 	}
 

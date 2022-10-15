@@ -1,7 +1,6 @@
 package com.github.longboyy.fingerprints.commands;
 
-import com.github.longboyy.fingerprints.Fingerprints;
-import org.bukkit.plugin.Plugin;
+import com.github.longboyy.fingerprints.FingerprintPlugin;
 import org.jetbrains.annotations.NotNull;
 import vg.civcraft.mc.civmodcore.commands.CommandManager;
 
@@ -11,7 +10,7 @@ public class FingerprintCommandManager extends CommandManager {
 	 *
 	 * @param plugin The plugin to bind this manager to.
 	 */
-	public FingerprintCommandManager(@NotNull Fingerprints plugin) {
+	public FingerprintCommandManager(@NotNull FingerprintPlugin plugin) {
 		super(plugin);
 		//this.registerContexts(this.getCommandContexts());
 		//this.registerCompletions(this.getCommandCompletions());
