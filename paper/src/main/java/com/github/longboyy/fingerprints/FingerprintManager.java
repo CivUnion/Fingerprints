@@ -1,14 +1,16 @@
 package com.github.longboyy.fingerprints;
 
-import com.github.longboyy.fingerprints.model.Fingerprint;
 import com.github.longboyy.fingerprints.model.FingerprintContainer;
 import com.github.longboyy.fingerprints.model.FingerprintsChunkData;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import vg.civcraft.mc.civmodcore.utilities.MoreClassUtils;
 import vg.civcraft.mc.civmodcore.world.locations.chunkmeta.api.BlockBasedChunkMetaView;
 import vg.civcraft.mc.civmodcore.world.locations.chunkmeta.block.table.TableBasedDataObject;
 import vg.civcraft.mc.civmodcore.world.locations.chunkmeta.block.table.TableStorageEngine;
+
+import java.util.Arrays;
 
 public class FingerprintManager {
 
@@ -45,6 +47,9 @@ public class FingerprintManager {
 	}
 
 	public void shutDown(){
+		Bukkit.getWorlds().forEach(world -> {
+			Arrays.stream(world.getLoadedChunks()).map(chunk -> this.chunkMetaData.getChunkMeta(chunk)).forEach(FingerprintsChunkData::insert);
+		});
 		this.chunkMetaData.disable();
 	}
 }

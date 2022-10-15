@@ -1,44 +1,23 @@
 package com.github.longboyy.fingerprints.util;
 
-import com.destroystokyo.paper.ParticleBuilder;
 import com.github.longboyy.fingerprints.FingerprintManager;
-import com.github.longboyy.fingerprints.Fingerprints;
+import com.github.longboyy.fingerprints.FingerprintPlugin;
 import com.github.longboyy.fingerprints.model.Fingerprint;
 import com.github.longboyy.fingerprints.model.FingerprintContainer;
 import com.github.longboyy.fingerprints.model.FingerprintReason;
-import com.google.common.collect.ImmutableList;
-import org.apache.commons.lang3.tuple.Pair;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.BlockIterator;
 import org.bukkit.util.Vector;
-import vg.civcraft.mc.civmodcore.particles.ParticleEffect;
 import vg.civcraft.mc.civmodcore.world.WorldUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class FingerprintUtils {
-
-	/*
-	public static final ImmutableList<Material> HARDEST_MATERIALS = ImmutableList.of(
-			Material.CRYING_OBSIDIAN,
-			Material.OBSIDIAN,
-			Material.RESPAWN_ANCHOR,
-			Material.ANCIENT_DEBRIS
-	);
-	 */
-
-	public static final float MAX_PARTICLE_OFFSET = 0.3f;
-	public static final float MAX_PARTICLE_SPEED = 0.1f;
 
 	private static Random RANDOM = new Random();
 
@@ -99,73 +78,35 @@ public class FingerprintUtils {
 		return block.getLocation();
 	}
 
-	private final static ParticleEffect DUST_PARTICLE = new ParticleEffect(Particle.FLAME, 0, 0, 0, 0, 3);
-
-	//private final static ParticleBuilder DUST_PARTICLE = new ParticleBuilder(Particle.FLAME)
-	//			.count(3);
-
-	public static void spawnDustParticle(Location loc){
-		BukkitRunnable runnable = new BukkitRunnable() {
-			int i = 0;
-			@Override
-			public void run() {
-				if(i >= 10){
-					this.cancel();
-				}
-				float randX = RANDOM.nextFloat() * 0.5f;
-				float randZ = RANDOM.nextFloat() * 0.5f;
-				new ParticleEffect(Particle.CRIT_MAGIC, randX, 0, randZ, 0.05f, 3).playEffect(loc.toCenterLocation().subtract(0, 0.5D, 0));
-				//DUST_PARTICLE.location(loc.toCenterLocation()).offset(randOffset, randOffset, randOffset).spawn();
-				i++;
-			}
-		};
-		runnable.runTaskTimer(Fingerprints.getInstance(Fingerprints.class), 0L, 1L);
-		/*
-		Bukkit.getScheduler().scheduleSyncRepeatingTask(Fingerprints.getInstance(Fingerprints.class), new Runnable() {
-			int i = 0;
-			@Override
-			public void run() {
-				if(i >= 30){
-
-				}
-				double randOffset = RANDOM.nextDouble() * 0.5D;
-				DUST_PARTICLE.location(loc).offset(randOffset, randOffset, randOffset).spawn();
-			}
-		}, 0L, 1L);
-		 */
-		/*
-		for(int i=0; i<=3; i++){
-			double randOffset = RANDOM.nextDouble() * 0.5D;
-			DUST_PARTICLE.location(loc).offset(randOffset, randOffset, randOffset).spawn();
-		}
-		 */
-	}
 
 	public static Fingerprint addFingerprint(Location loc, Player player, FingerprintReason reason){
 		return addFingerprint(loc, player, reason, new HashMap<>());
 	}
 
 	public static Fingerprint addFingerprint(Location loc, Player player, FingerprintReason reason, Map<String, Object> metadata){
+		FingerprintPlugin.log("addFingerprint - START");
 		FingerprintContainer container = FingerprintManager.getInstance().getFingerprintContainer(loc);
 		if(container == null){
+			FingerprintPlugin.log(String.format("Container was null[%s], creating a new one", loc.toString()));
 			container = new FingerprintContainer(loc);
 			FingerprintManager.getInstance().addFingerprintContainer(container);
 		}
-		Fingerprint fp = new Fingerprint(loc, System.currentTimeMillis(), player.getUniqueId(), reason);
+		FingerprintPlugin.log("Creating the fingerprint");
+		Fingerprint fp = new Fingerprint(loc, System.currentTimeMillis(), player.getUniqueId(), reason, metadata);
 		container.addFingerprint(fp);
+		FingerprintPlugin.log("Added fingerprint to container");
 		//ParticleEffect pe = new ParticleEffect(Particle.BLOCK_DUST, 0, 0 , 0, 0, 3);
 		//pe.playEffect(loc);
 		reason.playCreationParticle(loc);
+		FingerprintPlugin.log("addFingerprint - FINISH");
 		return fp;
 	}
 
-	public static void log(String msg){
-		Fingerprints.getInstance(Fingerprints.class).getLogger().info(msg);
-	}
-
-
 
 	public static boolean checkChance(double chance){
-		return RANDOM.nextDouble() <= chance;
+		double rand = RANDOM.nextDouble();
+		FingerprintPlugin.log(String.format("Chance check[%s<=%s|%s]", rand, chance, rand <= chance));
+		return rand <= chance;
 	}
+
 }

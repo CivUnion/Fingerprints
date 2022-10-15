@@ -1,59 +1,37 @@
 package com.github.longboyy.fingerprints;
 
 import com.github.longboyy.fingerprints.model.FingerprintReason;
-import org.bukkit.Particle;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemStack;
+import oshi.util.tuples.Pair;
 import vg.civcraft.mc.civmodcore.ACivMod;
+import vg.civcraft.mc.civmodcore.config.ConfigHelper;
 import vg.civcraft.mc.civmodcore.config.ConfigParser;
 import vg.civcraft.mc.civmodcore.dao.DatabaseCredentials;
 import vg.civcraft.mc.civmodcore.dao.ManagedDatasource;
-import vg.civcraft.mc.civmodcore.particles.ParticleEffect;
+import vg.civcraft.mc.civmodcore.utilities.creative.CivCreativeManager;
 
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.List;
 
 public class FingerprintsConfig extends ConfigParser {
-
-	private static final String DATABASE_KEY = "database";
-
-	//private final Map<String, Object> configOptions = new HashMap<>();
 
 	private ManagedDatasource database;
 
 	private int maxPrintsPerBlock = 5;
+	private Pair<ItemStack, Integer> dusterItem = new Pair<>(new ItemStack(Material.WOODEN_SWORD), 1);
+	private Pair<ItemStack, Integer> inkItem = new Pair<>(new ItemStack(Material.WOODEN_SWORD), 1);
+	private ItemStack magnifyingGlassItem = new ItemStack(new ItemStack(Material.STICK));
 
-	public FingerprintsConfig(Fingerprints plugin) {
+	public FingerprintsConfig(FingerprintPlugin plugin) {
 		super(plugin);
 	}
-
-	/*
-	public <T> T getOption(String key){
-		if(!this.configOptions.containsKey(key)){
-			return null;
-		}
-
-		Object rawValue = this.configOptions.get(key);
-
-		try {
-			@SuppressWarnings("unchecked")
-			T value = (T) rawValue;
-			return value;
-		}catch(Exception e){
-			return null;
-		}
-	}
-
-	public <T> T getOption(String key, T defaultValue){
-		T value = this.getOption(key);
-		return value == null ? defaultValue : value;
-	}
-	 */
 
 	@Override
 	protected boolean parseInternal(ConfigurationSection config) {
 		if(this.database == null) {
-			this.database = ManagedDatasource.construct((ACivMod) plugin, (DatabaseCredentials) config.get(DATABASE_KEY));
+			this.database = ManagedDatasource.construct((ACivMod) plugin, (DatabaseCredentials) config.get("database"));
 		}
 
 
@@ -67,6 +45,47 @@ public class FingerprintsConfig extends ConfigParser {
 			}
 			reason.parseConfig(section);
 		}
+
+		//inkItem.getItemMeta()
+		if(config.isConfigurationSection("items")){
+			ConfigurationSection current = config.getConfigurationSection("items");
+
+			ConfigurationSection dusterSection = current.getConfigurationSection("duster");
+			List<ItemStack> dusterItems = ConfigHelper.parseItemMapDirectly(dusterSection).getItemStackRepresentation();
+			if(dusterItems.size() != 0) {
+				int uses = dusterSection.getInt("uses", 1);
+				dusterItem = new Pair<>(dusterItems.get(0), uses);
+			}
+
+			ConfigurationSection inkSection = current.getConfigurationSection("ink");
+			List<ItemStack> inkItems = ConfigHelper.parseItemMapDirectly(inkSection).getItemStackRepresentation();
+			if(inkItems.size() != 0){
+				int uses = inkSection.getInt("uses", 1);
+				inkItem = new Pair<>(inkItems.get(0), uses);
+			}
+
+			ConfigurationSection magnifyingGlassSection = current.getConfigurationSection("magnifying_glass");
+			List<ItemStack> magnifyingGlassItems = ConfigHelper.parseItemMapDirectly(magnifyingGlassSection).getItemStackRepresentation();
+			if(magnifyingGlassItems.size() != 0){
+				magnifyingGlassItem = magnifyingGlassItems.get(0);
+			}
+		}
+
+		CivCreativeManager.register(
+				NamespacedKey.fromString("fingerprint_duster", this.plugin),
+				dusterItem.getA()
+		);
+
+		CivCreativeManager.register(
+				NamespacedKey.fromString("inkwell", this.plugin),
+				inkItem.getA()
+		);
+
+		CivCreativeManager.register(
+				NamespacedKey.fromString("magnifying_glass", this.plugin),
+				magnifyingGlassItem
+		);
+
 		return true;
 	}
 
@@ -76,5 +95,25 @@ public class FingerprintsConfig extends ConfigParser {
 
 	public int getMaxPrintsPerBlock(){
 		return this.maxPrintsPerBlock;
+	}
+
+	public ItemStack getDusterItem() {
+		return this.dusterItem.getA();
+	}
+
+	public int getDusterUses(){
+		return this.dusterItem.getB();
+	}
+
+	public ItemStack getInkItem() {
+		return this.inkItem.getA();
+	}
+
+	public int getInkUses(){
+		return this.inkItem.getB();
+	}
+
+	public ItemStack getMagnifyingGlassItem(){
+		return this.magnifyingGlassItem;
 	}
 }

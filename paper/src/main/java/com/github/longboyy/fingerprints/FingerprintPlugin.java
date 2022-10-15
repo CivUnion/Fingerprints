@@ -1,8 +1,8 @@
 package com.github.longboyy.fingerprints;
 
 import com.github.longboyy.fingerprints.commands.FingerprintCommandManager;
-import com.github.longboyy.fingerprints.listeners.PlayerListener;
-import com.github.longboyy.fingerprints.model.Fingerprint;
+import com.github.longboyy.fingerprints.listeners.DustListener;
+import com.github.longboyy.fingerprints.listeners.FingerprintListener;
 import com.github.longboyy.fingerprints.model.FingerprintContainer;
 import com.github.longboyy.fingerprints.model.FingerprintsChunkData;
 import com.github.longboyy.fingerprints.model.FPContainerDAO;
@@ -15,47 +15,55 @@ import vg.civcraft.mc.civmodcore.world.locations.chunkmeta.block.table.TableStor
 
 import java.util.logging.Logger;
 
-public class Fingerprints extends ACivMod {
+public class FingerprintPlugin extends ACivMod {
 
-	private Logger logger;
+	public static FingerprintPlugin instance(){
+		return FingerprintPlugin.getInstance(FingerprintPlugin.class);
+	}
+
+	//private Logger logger;
 	private FPContainerDAO dao;
 	private FingerprintsConfig config;
 	private FingerprintManager fingerprintManager;
 
+	public static void log(String msg){
+		instance().debug(msg);
+	}
+
 	@Override
 	public void onEnable() {
 		super.onEnable();
-		this.logger = this.getLogger();
+		//this.logger = this.getLogger();
 		this.config = new FingerprintsConfig(this);
-		this.saveDefaultConfig();
 		if(!this.config.parse()){
 			this.disable();
 			return;
 		}
 		this.dao = new FPContainerDAO(this.getLogger(), this.config.getDatabase());
 		if(!dao.updateDatabase()){
-			logger.severe("Errors setting up database");
+			this.severe("Errors setting up database");
 			this.disable();
 			return;
 		}
+		dao.setBatchMode(true);
 		BlockBasedChunkMetaView<FingerprintsChunkData, TableBasedDataObject, TableStorageEngine<FingerprintContainer>> chunkMetaData =
 				ChunkMetaAPI.registerBlockBasedPlugin(this, () -> new FingerprintsChunkData(false, dao), dao, true);
 		if(chunkMetaData == null){
-			logger.severe("Errors setting up chunk metadata API");
+			this.severe("Errors setting up chunk metadata API");
 			this.disable();
 			return;
 		}
 		fingerprintManager = new FingerprintManager(chunkMetaData);
-		this.registerListener(new PlayerListener(this));
+		this.registerListener(new FingerprintListener(this));
+		this.registerListener(new DustListener(this, fingerprintManager));
 
 		new FingerprintCommandManager(this);
-		//Hashing.sha256().hashString("", StandardCharsets.UTF_8).toString();
 	}
 
 	@Override
 	public void onDisable() {
 		super.onDisable();
-		dao.setBatchMode(true);
+		//dao.setBatchMode(true);
 		fingerprintManager.shutDown();
 		dao.cleanupBatches();
 		HandlerList.unregisterAll(this);

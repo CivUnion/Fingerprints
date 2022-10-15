@@ -1,7 +1,14 @@
 package com.github.longboyy.fingerprints.model;
 
+import com.github.longboyy.fingerprints.FingerprintPlugin;
+import com.github.longboyy.fingerprints.model.Fingerprint;
+import com.github.longboyy.fingerprints.model.FingerprintContainer;
+import com.github.longboyy.fingerprints.model.FingerprintReason;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.Vector;
 import vg.civcraft.mc.civmodcore.CivModCorePlugin;
 import vg.civcraft.mc.civmodcore.dao.ManagedDatasource;
 import vg.civcraft.mc.civmodcore.world.locations.chunkmeta.XZWCoord;
@@ -16,26 +23,46 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * For your own sanity, hope you never have to mess with ChunkMeta.
+ */
 public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 
 	private boolean batchMode;
+	private BukkitTask batchTask;
 	private List<List<FingerprintContainerTuple>> batches;
-
 
 	public FPContainerDAO(Logger logger, ManagedDatasource db) {
 		super(logger, db);
-
 	}
-
 	public void setBatchMode(boolean batch) {
 		this.batchMode = batch;
+		if(batchTask != null){
+			batchTask.cancel();
+		}
+
+		if(!batch){
+			return;
+		}
+
 		batches = new ArrayList<>();
 		for (int i = 0; i < 3; i++) {
 			batches.add(new ArrayList<>());
 		}
+
+		batchTask = new BukkitRunnable() {
+			@Override
+			public void run() {
+				cleanupBatches();
+			}
+		}.runTaskTimer(FingerprintPlugin.instance(), 30 * 20, 30 * 20);
 	}
 
 	public void cleanupBatches(){
+		if(!this.batchMode){
+			return;
+		}
+
 		long currentTime = System.currentTimeMillis();
 		try (Connection conn = db.getConnection();
 			 PreparedStatement deleteContainer = conn.prepareStatement(
@@ -46,12 +73,12 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 				setDeleteDataStatement(deleteContainer, fp.container, fp.coord);
 				deleteContainer.addBatch();
 			}
-			logger.info("Batch 2: " + (System.currentTimeMillis() - currentTime) + " ms");
-			logger.info("Batch 2 Size: " + batches.get(2).size());
+			FingerprintPlugin.log("Batch 2: " + (System.currentTimeMillis() - currentTime) + " ms");
+			FingerprintPlugin.log("Batch 2 Size: " + batches.get(2).size());
 			batches.get(2).clear();
 			deleteContainer.executeBatch();
 			conn.setAutoCommit(true);
-			logger.info("Batch 2 Finish: " + (System.currentTimeMillis() - currentTime) + " ms");
+			FingerprintPlugin.log("Batch 2 Finish: " + (System.currentTimeMillis() - currentTime) + " ms");
 		} catch (SQLException e) {
 			logger.log(Level.SEVERE, "Failed to delete fingerprint container from db: ", e);
 		}
@@ -64,8 +91,8 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 				setInsertDataStatement(insertContainer, fp.container, fp.coord);
 				insertContainer.addBatch();
 			}
-			logger.info("Batch 0: " + (System.currentTimeMillis() - currentTime) + " ms");
-			logger.info("Batch 0 Size: " + batches.get(0).size());
+			FingerprintPlugin.log("Batch 0: " + (System.currentTimeMillis() - currentTime) + " ms");
+			FingerprintPlugin.log("Batch 0 Size: " + batches.get(0).size());
 			int[] affectedRows = insertContainer.executeBatch();
 			try(ResultSet generatedKeys = insertContainer.getGeneratedKeys()){
 				int i = 0;
@@ -78,7 +105,7 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 			}
 			batches.get(0).clear();
 			conn.setAutoCommit(true);
-			logger.info("Batch 0 Finish: " + (System.currentTimeMillis() - currentTime) + " ms");
+			FingerprintPlugin.log("Batch 0 Finish: " + (System.currentTimeMillis() - currentTime) + " ms");
 		} catch (SQLException e) {
 			logger.log(Level.SEVERE, "Failed to insert fingerprint container into db: ", e);
 		}
@@ -90,33 +117,41 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 			for (FingerprintContainerTuple fct : batches.get(1)) {
 				Fingerprint fp;
 				while((fp = fct.container.deletions.poll()) != null){
+					if(fp.id <= -1){
+						return;
+					}
 					deleteFp.setInt(1, fp.id);
 					deleteFp.addBatch();
 				}
 			}
-			logger.info("Batch 1 part 1: " + (System.currentTimeMillis() - currentTime) + " ms");
-			logger.info("Batch 1 part 1 Size: " + batches.get(1).size());
-			//updateRein.executeBatch();
+			FingerprintPlugin.log("Batch 1 part 1: " + (System.currentTimeMillis() - currentTime) + " ms");
+			FingerprintPlugin.log("Batch 1 part 1 Size: " + batches.get(1).size());
 			deleteFp.executeBatch();
 			conn.setAutoCommit(true);
-			logger.info("Batch 1 part 1 Finish: " + (System.currentTimeMillis() - currentTime) + " ms");
+			FingerprintPlugin.log("Batch 1 part 1 Finish: " + (System.currentTimeMillis() - currentTime) + " ms");
 		} catch (SQLException e) {
 			logger.log(Level.SEVERE, "Failed to update fingerprint in db: ", e);
 		}
 
 		try (Connection conn = db.getConnection();
-			 PreparedStatement insertFp = conn.prepareStatement("INSERT INTO fingerprints(container_id, reason, player_uuid, metadata) VALUES(?, ?, ?, ?);", Statement.RETURN_GENERATED_KEYS);) {
+			 PreparedStatement insertFp = conn.prepareStatement("INSERT INTO fingerprints(container_id, reason, player_uuid, offset_x, offset_z, metadata) VALUES(?, ?, ?, ?, ?, ?);", Statement.RETURN_GENERATED_KEYS);) {
 			conn.setAutoCommit(false);
 			List<Fingerprint> insertedPrints = new ArrayList<>();
 			for (FingerprintContainerTuple fct : batches.get(1)) {
 
-				logger.info("Running update batch");
+				FingerprintPlugin.log("Running update batch");
 
 				Fingerprint fp;
 				while((fp = fct.container.inserts.poll()) != null){
+					if(fct.container.id <= -1){
+						return;
+					}
+
 					insertFp.setInt(1, fct.container.id);
 					insertFp.setString(2, fp.getReason().name());
 					insertFp.setString(3, fp.getPlayerId().toString());
+					insertFp.setDouble(4, fp.getOffset().getX());
+					insertFp.setDouble(5, fp.getOffset().getZ());
 					Blob blob = conn.createBlob();
 					if(fp.getMetadata() != null && !fp.getMetadata().isEmpty()){
 						try(ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -128,13 +163,13 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 							logger.log(Level.SEVERE, "Failed to serialize metadata for fingerprint: ", e);
 						}
 					}
-					insertFp.setBlob(4, blob);
+					insertFp.setBlob(6, blob);
 					insertFp.addBatch();
 					insertedPrints.add(fp);
 				}
 			}
-			logger.info("Batch 1 part 2: " + (System.currentTimeMillis() - currentTime) + " ms");
-			logger.info("Batch 1 part 2 Size: " + batches.get(1).size());
+			FingerprintPlugin.log("Batch 1 part 2: " + (System.currentTimeMillis() - currentTime) + " ms");
+			FingerprintPlugin.log("Batch 1 part 2 Size: " + batches.get(1).size());
 			//updateRein.executeBatch();
 			int[] affectedRows = insertFp.executeBatch();
 			conn.setAutoCommit(true);
@@ -148,18 +183,16 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 				}
 			}
 			batches.get(1).clear();
-			logger.info("Batch 1 part 2 Finish: " + (System.currentTimeMillis() - currentTime) + " ms");
+			FingerprintPlugin.log("Batch 1 part 2 Finish: " + (System.currentTimeMillis() - currentTime) + " ms");
 		} catch (SQLException e) {
 			logger.log(Level.SEVERE, "Failed to update fingerprint in db: ", e);
 		}
-
-
 	}
 
 	@Override
 	public void registerMigrations() {
 		db.registerMigration(0, false, "CREATE TABLE IF NOT EXISTS fingerprint_containers( " +
-				"id INT unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
+				"id INT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE PRIMARY KEY, " +
 				"x_offset TINYINT unsigned NOT NULL, " +
 				"y INT NOT NULL, " +
 				"z_offset INT unsigned NOT NULL, " +
@@ -169,19 +202,20 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 				");",
 
 				"CREATE TABLE IF NOT EXISTS fingerprints( " +
-				"id INT unsigned NOT NULL AUTO_INCREMENT PRIMARY KEY, " +
+				"id INT UNSIGNED NOT NULL AUTO_INCREMENT UNIQUE PRIMARY KEY, " +
 				"container_id INT unsigned NOT NULL, " +
 				"reason TINYTEXT NOT NULL, " +
 				"created_at TIMESTAMP NOT NULL DEFAULT now(), " +
 				"player_uuid VARCHAR(36) NOT NULL, " +
-				"metadata BLOB, " +
+				"metadata LONGTEXT, " +
+				"offset_x DOUBLE, " +
+				"offset_z DOUBLE, " +
 				"CONSTRAINT `fk_container_id` " +
 				"FOREIGN KEY(container_id) REFERENCES fingerprint_containers(id) " +
 				"ON DELETE CASCADE " +
 				"ON UPDATE RESTRICT" +
 				");"
 		);
-
 	}
 
 	@Override
@@ -229,13 +263,17 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 			return;
 		}
 
+		logger.info("Updating a fingerprint container");
+
 		try(Connection conn = db.getConnection()){
 			Fingerprint fp;
 			while((fp = data.deletions.poll()) != null){
+				logger.info("Attempting deletion of fingerprint");
 				if(fp.id != -1){
 					try(PreparedStatement deleteFp = conn.prepareStatement("DELETE FROM fingerprints WHERE id = ?;")){
 						deleteFp.setInt(1, fp.id);
-						deleteFp.execute();
+						boolean success = deleteFp.execute();
+						logger.info("Fingerprint Deleted?: " + success);
 					}
 				}
 			}
@@ -245,32 +283,39 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 
 		try(Connection conn = db.getConnection()){
 			Fingerprint fp;
+			logger.info(String.format("Attempting insertion of fingerprints, size: %s, container id: %s", data.inserts.size(), data.id));
 			while((fp = data.inserts.poll()) != null){
-				if(fp.id != -1){
+				if(data.id != -1){
+					logger.info("Attempting insertion of fingerprint");
 					//INSERT INTO fingerprints(container_id, reason, player_uuid) VALUES(?, ?, ?);
 					try(PreparedStatement insertFp = conn.prepareStatement("INSERT INTO fingerprints(" +
-							"container_id, reason, player_uuid, metadata) VALUES(?, ?, ?, ?);", Statement.RETURN_GENERATED_KEYS)){
+							"container_id, reason, player_uuid, offset_x, offset_z, metadata) VALUES(?, ?, ?, ?, ?, ?);", Statement.RETURN_GENERATED_KEYS)){
 						insertFp.setInt(1, data.id);
 						insertFp.setString(2, fp.getReason().name());
 						insertFp.setString(3, fp.getPlayerId().toString());
+						insertFp.setDouble(4, fp.getOffset().getX());
+						insertFp.setDouble(5, fp.getOffset().getZ());
 						Blob blob = conn.createBlob();
 						if(fp.getMetadata() != null && !fp.getMetadata().isEmpty()){
 							try(ByteArrayOutputStream os = new ByteArrayOutputStream();
 								ObjectOutputStream oos = new ObjectOutputStream(os);){
 								oos.writeObject(fp.getMetadata());
 								oos.flush();
-								blob.setBytes(0, os.toByteArray());
+								blob.setBytes(1, os.toByteArray());
 							}catch (IOException e) {
 								logger.log(Level.SEVERE, "Failed to serialize metadata for fingerprint: ", e);
 							}
 						}
-						insertFp.setBlob(4, blob);
+						insertFp.setBlob(6, blob);
 
 						int rowsAffected = insertFp.executeUpdate();
+						logger.info("Insertion of fingerprint: " + rowsAffected);
 						if(rowsAffected != 0){
 							try(ResultSet generatedKeys = insertFp.getGeneratedKeys()){
-								int id = generatedKeys.getInt(1);
-								fp.id = id;
+								if(generatedKeys.next()) {
+									int id = generatedKeys.getInt(1);
+									fp.id = id;
+								}
 							}
 						}
 					}
@@ -288,11 +333,14 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 			return;
 		}
 
+		logger.info("Deleting a fingerprint container from the database");
+
 		try(Connection conn = db.getConnection();
 			PreparedStatement deleteFp = conn.prepareStatement("DELETE FROM fingerprint_containers WHERE " +
 					"chunk_x = ? AND chunk_z = ? AND world_id = ? AND x_offset = ? AND y = ? AND z_offset = ?");){
 			setDeleteDataStatement(deleteFp, data, coord);
-			deleteFp.execute();
+			boolean success = deleteFp.execute();
+			logger.info("Deleted Fingerprint?: " + success);
 		}catch(SQLException e){
 			logger.log(Level.SEVERE, "Failed to load fingerprint container from db: ", e);
 		}
@@ -309,6 +357,7 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 
 	@Override
 	public void fill(TableBasedBlockChunkMeta<FingerprintContainer> chunkData, Consumer<FingerprintContainer> insertFunction) {
+		//logger.info("Running fill function");
 		int preMultipliedX = chunkData.getChunkCoord().getX() * 16;
 		int preMultipliedZ = chunkData.getChunkCoord().getZ() * 16;
 		//ReinforcementTypeManager typeMan = Citadel.getInstance().getReinforcementTypeManager();
@@ -317,10 +366,12 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 			 PreparedStatement selectContainer = conn.prepareStatement(
 					 "SELECT x_offset, y, z_offset "
 							 + "FROM fingerprint_containers WHERE chunk_x = ? AND chunk_z = ? AND world_id = ?;");) {
+			//logger.info("Getting all fingerprint_containers");
 			selectContainer.setInt(1, chunkData.getChunkCoord().getX());
 			selectContainer.setInt(2, chunkData.getChunkCoord().getZ());
 			selectContainer.setShort(3, chunkData.getChunkCoord().getWorldID());
 			try (ResultSet rs = selectContainer.executeQuery()) {
+				//logger.info("Executed query, processing result set");
 				while (rs.next()) {
 					int xOffset = rs.getByte(1);
 					int x = xOffset + preMultipliedX;
@@ -332,6 +383,7 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 					insertFunction.accept(container);
 				}
 			}
+			//logger.info("Finished fill");
 		} catch (SQLException e) {
 			logger.log(Level.SEVERE, "Failed to load fingerprints from db: ", e);
 		}
@@ -341,6 +393,8 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 	public FingerprintContainer getForLocation(int x, int y, int z, short worldID, short pluginID) {
 		int chunkX = BlockBasedChunkMeta.toChunkCoord(x);
 		int chunkZ = BlockBasedChunkMeta.toChunkCoord(z);
+
+		logger.info("Grabbing id for container - getForLocation");
 
 		try(Connection conn = db.getConnection();
 			PreparedStatement selectContainer = conn.prepareStatement("SELECT id FROM fingerprint_containers WHERE " +
@@ -360,16 +414,20 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 
 			try(ResultSet crs = selectContainer.executeQuery()){
 				if(!crs.next()){
+					logger.info("No resulting id found - getForLocation");
 					return null;
 				}
 				int containerId = crs.getInt(1);
+				logger.info(String.format("Found ID for container: %s - getForLocation", containerId));
 
 				World world = CivModCorePlugin.getInstance().getWorldIdManager().getWorldByInternalID(worldID);
 				Location loc = new Location(world, x, y, z);
 				FingerprintContainer container = new FingerprintContainer(containerId, loc, false);
 
+				logger.info("Grabbing all fingerprints for container - getForLocation");
+
 				try(Connection conn1 = db.getConnection();
-				PreparedStatement selectFp = conn1.prepareStatement("SELECT id, reason, created_at, player_uuid, metadata FROM fingerprints WHERE container_id = ? ORDER BY created_at DESC;")){
+				PreparedStatement selectFp = conn1.prepareStatement("SELECT id, reason, created_at, player_uuid, offset_x, offset_z, metadata FROM fingerprints WHERE container_id = ? ORDER BY created_at DESC;")){
 					selectFp.setInt(1, containerId);
 					try(ResultSet frs = selectFp.executeQuery()){
 						while(frs.next()) {
@@ -377,11 +435,13 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 							String reason = frs.getString(2);
 							Timestamp created_at = frs.getTimestamp(3);
 							String player_uuid = frs.getString(4);
-							Blob meta = frs.getBlob(5);
+							double offset_x = frs.getDouble(5);
+							double offset_z = frs.getDouble(6);
+							Blob meta = frs.getBlob(7);
 
 							Map<String, Object> metadata = new HashMap<>();
 
-							if(meta != null){
+							if(meta != null && meta.length() != 0){
 								try(InputStream is = meta.getBinaryStream();
 									ObjectInputStream ois = new ObjectInputStream(is);){
 									Map<String, Object> loadedMeta = (Map<String, Object>)ois.readObject();
@@ -394,12 +454,15 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 							FingerprintReason fpReason = FingerprintReason.valueOf(reason);
 							UUID playerUUID = UUID.fromString(player_uuid);
 
-							container.fingerprints.add(new Fingerprint(id, loc, created_at.getTime(), playerUUID, fpReason, metadata));
+							Fingerprint fp = new Fingerprint(id, loc, created_at.getTime(), playerUUID, fpReason, new Vector(offset_x, 0, offset_z), metadata);
+
+							container.fingerprints.add(fp);
 							//container.addFingerprint();
 						}
 					}
 				}
 
+				logger.info("Finished grabbing id for container - getForLocation");
 				return container;
 			}
 		} catch (SQLException e) {
@@ -433,9 +496,9 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 		return false;
 	}
 
-	private class FingerprintContainerTuple {
-		private FingerprintContainer container;
-		private XZWCoord coord;
+	protected static class FingerprintContainerTuple {
+		private final FingerprintContainer container;
+		private final XZWCoord coord;
 		public FingerprintContainerTuple(FingerprintContainer container, XZWCoord coord){
 			this.container = container;
 			this.coord = coord;
