@@ -1,6 +1,7 @@
 package com.github.longboyy.fingerprints;
 
 import com.github.longboyy.fingerprints.model.FingerprintReason;
+import com.github.longboyy.fingerprints.util.FingerprintUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
@@ -11,7 +12,7 @@ import vg.civcraft.mc.civmodcore.config.ConfigHelper;
 import vg.civcraft.mc.civmodcore.config.ConfigParser;
 import vg.civcraft.mc.civmodcore.dao.DatabaseCredentials;
 import vg.civcraft.mc.civmodcore.dao.ManagedDatasource;
-import vg.civcraft.mc.civmodcore.utilities.creative.CivCreativeManager;
+import vg.civcraft.mc.civmodcore.utilities.ItemManager;
 
 import java.util.List;
 
@@ -23,6 +24,9 @@ public class FingerprintsConfig extends ConfigParser {
 	private Pair<ItemStack, Integer> dusterItem = new Pair<>(new ItemStack(Material.WOODEN_SWORD), 1);
 	private Pair<ItemStack, Integer> inkItem = new Pair<>(new ItemStack(Material.WOODEN_SWORD), 1);
 	private ItemStack magnifyingGlassItem = new ItemStack(new ItemStack(Material.STICK));
+
+	private int bookCustomModelData = -1;
+	private int fingerprintCustomModelData = -1;
 
 	public FingerprintsConfig(FingerprintPlugin plugin) {
 		super(plugin);
@@ -71,17 +75,17 @@ public class FingerprintsConfig extends ConfigParser {
 			}
 		}
 
-		CivCreativeManager.register(
+		ItemManager.register(
 				NamespacedKey.fromString("fingerprint_duster", this.plugin),
 				dusterItem.getA()
 		);
 
-		CivCreativeManager.register(
+		ItemManager.register(
 				NamespacedKey.fromString("inkwell", this.plugin),
 				inkItem.getA()
 		);
 
-		CivCreativeManager.register(
+		ItemManager.register(
 				NamespacedKey.fromString("magnifying_glass", this.plugin),
 				magnifyingGlassItem
 		);
@@ -115,5 +119,13 @@ public class FingerprintsConfig extends ConfigParser {
 
 	public ItemStack getMagnifyingGlassItem(){
 		return this.magnifyingGlassItem;
+	}
+
+	public int getBookCustomModelData(){
+		return this.bookCustomModelData;
+	}
+
+	public int getFingerprintCustomModelData(){
+		return this.getFingerprintCustomModelData();
 	}
 }

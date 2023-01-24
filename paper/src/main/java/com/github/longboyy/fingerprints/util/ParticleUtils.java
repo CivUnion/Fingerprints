@@ -111,7 +111,7 @@ public class ParticleUtils {
 
 		BukkitRunnable runnable = new BukkitRunnable() {
 			int i = 0;
-			List<Location> fpLocs = container.getFingerprints().stream()
+			List<Pair<Fingerprint, Location>> fpLocs = container.getFingerprints().stream()
 					.sorted((former, latter) -> {
 						if(former.getCreationTime() == latter.getCreationTime()){
 							return 0;
@@ -121,9 +121,9 @@ public class ParticleUtils {
 							return 1;
 						}
 					})
-					.map(fp -> projectionOrigin.clone().add(transformToFace(fp.getOffset(), face)))
+					.map(fp -> new Pair<>(fp, projectionOrigin.clone().add(transformToFace(fp.getOffset(), face))))
 					.toList();
-			ParticleEffect effect = new ParticleEffect(Particle.ELECTRIC_SPARK, 0, 0, 0, 0f, 1);
+			//ParticleEffect effect = new ParticleEffect(Particle.ELECTRIC_SPARK, 0, 0, 0, 0f, 1);
 			@Override
 			public void run() {
 
@@ -139,7 +139,8 @@ public class ParticleUtils {
 				}
 				 */
 
-				fpLocs.forEach(loc -> effect.playEffect(loc, player));
+				//fpLocs.forEach(loc -> effect.playEffect(loc.getB(), player));
+				fpLocs.forEach(pair -> pair.getA().getReason().playDisplayParticle(pair.getB(), player));
 
 				i++;
 

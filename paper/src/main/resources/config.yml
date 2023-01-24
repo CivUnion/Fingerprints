@@ -11,6 +11,11 @@ database:
   idle_timeout: 600000
   max_lifetime: 7200000
 
+# custom model ids for the respective items
+custom_model_ids:
+  fingerprint: -1
+  fingerprint_book: -1
+
 # The number of prints allowed to occupy one block
 max_prints_per_block: 5
 items:

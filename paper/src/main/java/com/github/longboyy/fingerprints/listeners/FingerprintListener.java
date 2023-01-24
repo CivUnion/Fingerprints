@@ -3,6 +3,7 @@ package com.github.longboyy.fingerprints.listeners;
 import com.github.longboyy.fingerprints.FingerprintPlugin;
 import com.github.longboyy.fingerprints.model.FingerprintReason;
 import com.github.longboyy.fingerprints.util.FingerprintUtils;
+import com.google.common.collect.ImmutableSet;
 import isaac.bastion.Bastion;
 import isaac.bastion.BastionBlock;
 import isaac.bastion.event.BastionDamageEvent;
@@ -16,17 +17,18 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
-import org.bukkit.event.inventory.InventoryMoveItemEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.inventory.*;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.util.BlockIterator;
 import vg.civcraft.mc.citadel.Citadel;
 import vg.civcraft.mc.citadel.CitadelPermissionHandler;
 import vg.civcraft.mc.citadel.model.Reinforcement;
 import vg.civcraft.mc.civmodcore.events.PlayerMoveBlockEvent;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class FingerprintListener implements Listener {
 
@@ -87,27 +89,69 @@ public class FingerprintListener implements Listener {
 		}
 	}
 
+	private static final Set<InventoryType> VALID_CONTAINERS = ImmutableSet.of(
+			InventoryType.BARREL,
+			InventoryType.SMOKER,
+			InventoryType.BLAST_FURNACE,
+			InventoryType.BREWING,
+			InventoryType.CHEST,
+			InventoryType.DISPENSER,
+			InventoryType.DROPPER,
+			InventoryType.HOPPER,
+			InventoryType.LECTERN,
+			InventoryType.FURNACE
+	);
+
+	private static final Set<InventoryAction> VALID_INV_ACTIONS = ImmutableSet.of(
+			InventoryAction.PICKUP_ONE,
+			InventoryAction.PICKUP_SOME,
+			InventoryAction.PICKUP_HALF,
+			InventoryAction.PICKUP_ALL,
+			InventoryAction.COLLECT_TO_CURSOR,
+			InventoryAction.DROP_ONE_CURSOR,
+			InventoryAction.DROP_ALL_CURSOR,
+			InventoryAction.DROP_ONE_SLOT,
+			InventoryAction.DROP_ALL_SLOT,
+			InventoryAction.SWAP_WITH_CURSOR,
+			InventoryAction.HOTBAR_SWAP,
+			InventoryAction.HOTBAR_MOVE_AND_READD,
+			InventoryAction.MOVE_TO_OTHER_INVENTORY
+	);
+
 	/**
 	 * THEFT
 	 */
-	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-	public void onInventoryMove(InventoryMoveItemEvent event){
-		if(!(event.getDestination() instanceof PlayerInventory to)){
+	@EventHandler(priority = EventPriority.MONITOR)
+	public void onPlayerTheft(InventoryClickEvent event){
+		/*
+		FingerprintPlugin.log(String.format("Main inv: %s | Clicked inv: %s | Action: %s",
+				event.getInventory().getType(),
+				event.getClickedInventory() != null ? event.getClickedInventory().getType() : "NONE",
+				event.getAction()
+		));
+		 */
+
+		Inventory mainInv = event.getInventory();
+		if(!VALID_CONTAINERS.contains(mainInv.getType()) || !VALID_INV_ACTIONS.contains(event.getAction()) || mainInv.getType() != event.getClickedInventory().getType()){
 			return;
 		}
 
-		Inventory from = event.getInitiator();
-		Location loc = from.getLocation();
-		if(loc == null){
+		ItemStack itemStack = event.getCurrentItem();
+		if(itemStack == null){
 			return;
 		}
 
-		Block block = loc.getBlock();
+		if(mainInv.getLocation() == null){
+			return;
+		}
+
+		Block block = mainInv.getLocation().getBlock();
 		if(!(block.getState() instanceof Container)){
+			FingerprintPlugin.log("Attempted to do theft but wasn't container");
 			return;
 		}
 
-		Player player = (Player)to.getHolder();
+		Player player = (Player) event.getWhoClicked();
 		Reinforcement rein = Citadel.getInstance().getReinforcementManager().getReinforcement(block);
 		double chance = -1D;
 		if(rein == null){
@@ -117,13 +161,18 @@ public class FingerprintListener implements Listener {
 			chance = FingerprintReason.THEFT.getSetting("locked_chance", 0.1D);
 		}
 
-		ItemStack item = event.getItem();
-		double stackSize = item.getMaxStackSize() == 1D ? 1D : item.getMaxStackSize() / 8D;
-		chance *= item.getAmount() / stackSize;
+		//double stackSize = item.getMaxStackSize() == 1D ? 1D : item.getMaxStackSize();
+		chance *= (double) itemStack.getAmount() / itemStack.getMaxStackSize();
+		FingerprintPlugin.log("Chance for theft: " + chance);
 
 		if(FingerprintUtils.checkChance(chance)) {
-			FingerprintUtils.addFingerprint(loc, player, FingerprintReason.THEFT);
+			FingerprintUtils.addFingerprint(mainInv.getLocation(), player, FingerprintReason.THEFT);
 		}
+
+
+		//FingerprintPlugin.log(String.format("ItemStack: %s", itemStack));
+
+		//FingerprintPlugin.log(event.getInventory().getType().toString());
 	}
 
 	/**
@@ -133,12 +182,12 @@ public class FingerprintListener implements Listener {
 	public void onPlayerMove(PlayerMoveBlockEvent event){
 		Player player = event.getPlayer();
 		Location loc = event.getTo();
-		Set<BastionBlock> bastions = Bastion.getBastionManager().getBlockingBastions(loc);
-		if(bastions == null || bastions.isEmpty()){
+		List<String> validBastionTypes = FingerprintReason.TRESPASSING.getSetting("bastion_types", new ArrayList<String>());
+		Set<BastionBlock> bastions = Bastion.getBastionManager().getBlockingBastions(loc).stream().filter(bastionBlock -> validBastionTypes.contains(bastionBlock.getType().getName())).collect(Collectors.toSet());
+		if(bastions.isEmpty()){
 			return;
 		}
 
-		List<String> validBastionTypes = FingerprintReason.TRESPASSING.getSetting("bastion_types", new ArrayList<String>());
 		double chance = FingerprintReason.TRESPASSING.getSetting("chance", 0.05D);
 
 		for(BastionBlock bastion : bastions){
@@ -261,7 +310,7 @@ public class FingerprintListener implements Listener {
 	/**
 	 * VANDALISM - BASTION BREAK
 	 */
-	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.MONITOR)
 	public void onBastionDamage(BastionDamageEvent event){
 		Player player = event.getPlayer();
 		Location loc = FingerprintUtils.getClosestNonAir(player.getLocation());
@@ -281,10 +330,20 @@ public class FingerprintListener implements Listener {
 		Player player = event.getPlayer();
 		Location loc = event.getBlock().getLocation();
 
+		Block block = loc.getBlock();
+		BlockIterator blockIterator = new BlockIterator(loc, 0, 1);
+		do{
+			Block b = blockIterator.next();
+			if(b.isEmpty()){
+				block = b;
+				break;
+			}
+		}while(blockIterator.hasNext());
+
 		double chance = FingerprintReason.VANDALISM.getSetting("block_break_chance", 0.05D);
 
 		if(FingerprintUtils.checkChance(chance)){
-			FingerprintUtils.addFingerprint(loc, player, FingerprintReason.VANDALISM);
+			FingerprintUtils.addFingerprint(block.getLocation(), player, FingerprintReason.VANDALISM);
 		}
 	}
 

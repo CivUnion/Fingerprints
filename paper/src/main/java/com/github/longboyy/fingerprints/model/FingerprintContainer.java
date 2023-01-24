@@ -51,7 +51,7 @@ public class FingerprintContainer extends TableBasedDataObject {
 			return;
 		}
 
-		FingerprintPlugin.log("FingerprintContainer::addFingerprint - START");
+		//FingerprintPlugin.log("FingerprintContainer::addFingerprint - START");
 
 		int maxPrints = FingerprintPlugin.getInstance(FingerprintPlugin.class).config().getMaxPrintsPerBlock();
 		FingerprintPlugin.log(String.format("FingerprintContainer::addFingerprint - Size: %s, Max Size: %s, Result: %s", fingerprints.size(), maxPrints, fingerprints.size() >= maxPrints));
@@ -98,13 +98,13 @@ public class FingerprintContainer extends TableBasedDataObject {
 		}
 
 		inserts.add(fingerprint);
-		FingerprintPlugin.log("FingerprintContainer::addFingerprint - Added fingerprint to inserts");
+		//FingerprintPlugin.log("FingerprintContainer::addFingerprint - Added fingerprint to inserts");
 		fingerprints.add(fingerprint);
-		FingerprintPlugin.log("FingerprintContainer::addFingerprint - Added fingerprint to container");
+		//FingerprintPlugin.log("FingerprintContainer::addFingerprint - Added fingerprint to container");
 		this.setCacheState(CacheState.MODIFIED);
 		this.getOwningCache().insert();
 		//this.getOwningCache().insert();
-		FingerprintPlugin.log("FingerprintContainer::addFingerprint - FINISH");
+		//FingerprintPlugin.log("FingerprintContainer::addFingerprint - FINISH");
 	}
 
 	public void removeFingerprint(Fingerprint fingerprint){

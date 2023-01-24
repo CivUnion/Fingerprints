@@ -73,8 +73,8 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 				setDeleteDataStatement(deleteContainer, fp.container, fp.coord);
 				deleteContainer.addBatch();
 			}
-			FingerprintPlugin.log("Batch 2: " + (System.currentTimeMillis() - currentTime) + " ms");
-			FingerprintPlugin.log("Batch 2 Size: " + batches.get(2).size());
+			//FingerprintPlugin.log("Batch 2: " + (System.currentTimeMillis() - currentTime) + " ms");
+			//FingerprintPlugin.log("Batch 2 Size: " + batches.get(2).size());
 			batches.get(2).clear();
 			deleteContainer.executeBatch();
 			conn.setAutoCommit(true);
@@ -91,8 +91,8 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 				setInsertDataStatement(insertContainer, fp.container, fp.coord);
 				insertContainer.addBatch();
 			}
-			FingerprintPlugin.log("Batch 0: " + (System.currentTimeMillis() - currentTime) + " ms");
-			FingerprintPlugin.log("Batch 0 Size: " + batches.get(0).size());
+			//FingerprintPlugin.log("Batch 0: " + (System.currentTimeMillis() - currentTime) + " ms");
+			//FingerprintPlugin.log("Batch 0 Size: " + batches.get(0).size());
 			int[] affectedRows = insertContainer.executeBatch();
 			try(ResultSet generatedKeys = insertContainer.getGeneratedKeys()){
 				int i = 0;
@@ -124,8 +124,8 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 					deleteFp.addBatch();
 				}
 			}
-			FingerprintPlugin.log("Batch 1 part 1: " + (System.currentTimeMillis() - currentTime) + " ms");
-			FingerprintPlugin.log("Batch 1 part 1 Size: " + batches.get(1).size());
+			//FingerprintPlugin.log("Batch 1 part 1: " + (System.currentTimeMillis() - currentTime) + " ms");
+			//FingerprintPlugin.log("Batch 1 part 1 Size: " + batches.get(1).size());
 			deleteFp.executeBatch();
 			conn.setAutoCommit(true);
 			FingerprintPlugin.log("Batch 1 part 1 Finish: " + (System.currentTimeMillis() - currentTime) + " ms");
@@ -168,8 +168,8 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 					insertedPrints.add(fp);
 				}
 			}
-			FingerprintPlugin.log("Batch 1 part 2: " + (System.currentTimeMillis() - currentTime) + " ms");
-			FingerprintPlugin.log("Batch 1 part 2 Size: " + batches.get(1).size());
+			//FingerprintPlugin.log("Batch 1 part 2: " + (System.currentTimeMillis() - currentTime) + " ms");
+			//FingerprintPlugin.log("Batch 1 part 2 Size: " + batches.get(1).size());
 			//updateRein.executeBatch();
 			int[] affectedRows = insertFp.executeBatch();
 			conn.setAutoCommit(true);

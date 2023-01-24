@@ -5,15 +5,25 @@ import com.github.longboyy.fingerprints.FingerprintPlugin;
 import com.github.longboyy.fingerprints.model.Fingerprint;
 import com.github.longboyy.fingerprints.model.FingerprintContainer;
 import com.github.longboyy.fingerprints.model.FingerprintReason;
+import net.kyori.adventure.text.Component;
+import net.minecraft.nbt.CompoundTag;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.util.BlockIterator;
 import org.bukkit.util.Vector;
+import vg.civcraft.mc.civmodcore.inventory.items.ItemMap;
+import vg.civcraft.mc.civmodcore.inventory.items.MetaUtils;
+import vg.civcraft.mc.civmodcore.nbt.NBTSerialization;
+import vg.civcraft.mc.civmodcore.nbt.wrappers.NBTCompound;
 import vg.civcraft.mc.civmodcore.world.WorldUtils;
 
+import java.awt.print.Book;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -79,26 +89,60 @@ public class FingerprintUtils {
 	}
 
 
+	public static ItemStack bookTest(){
+		ItemStack book = new ItemStack(Material.WRITTEN_BOOK, 1);
+		BookMeta meta = (BookMeta) book.getItemMeta();
+		meta.setTitle("Rawr XD");
+		meta.addPages(Component.text("i'm losing my mind"));
+
+		meta.setAuthor("Some person");
+		book.setItemMeta(meta);
+
+		return book;
+	}
+
+	public static final String FP_NBT_TAG_KEY = "fingerprint";
+	public static boolean isFingerprint(ItemStack item){
+		final NBTCompound tag = NBTSerialization.fromItem(item);
+		return tag != null && tag.hasKey(FP_NBT_TAG_KEY) && tag.getBoolean(FP_NBT_TAG_KEY);
+	}
+
+	public static final String FP_BOOK_NBT_TAG_KEY = "fingerprint_book";
+	public static boolean isFingerprintBook(ItemStack item){
+		final NBTCompound tag = NBTSerialization.fromItem(item);
+		return tag != null && tag.hasKey(FP_BOOK_NBT_TAG_KEY) && tag.getBoolean(FP_BOOK_NBT_TAG_KEY);
+	}
+
+	public static void addFingerprintToBook(ItemStack book, ItemStack item){
+		BookMeta meta = (BookMeta) book.getItemMeta();
+		Component comps = Component.empty();
+		for(Component comp : MetaUtils.getComponentLore(item.getItemMeta())){
+			comps = comps.append(comp).append(Component.newline());
+		}
+		meta.addPages(comps);
+		book.setItemMeta(meta);
+	}
+
 	public static Fingerprint addFingerprint(Location loc, Player player, FingerprintReason reason){
 		return addFingerprint(loc, player, reason, new HashMap<>());
 	}
 
 	public static Fingerprint addFingerprint(Location loc, Player player, FingerprintReason reason, Map<String, Object> metadata){
-		FingerprintPlugin.log("addFingerprint - START");
+		//FingerprintPlugin.log("addFingerprint - START");
 		FingerprintContainer container = FingerprintManager.getInstance().getFingerprintContainer(loc);
 		if(container == null){
 			FingerprintPlugin.log(String.format("Container was null[%s], creating a new one", loc.toString()));
 			container = new FingerprintContainer(loc);
 			FingerprintManager.getInstance().addFingerprintContainer(container);
 		}
-		FingerprintPlugin.log("Creating the fingerprint");
+		//FingerprintPlugin.log("Creating the fingerprint");
 		Fingerprint fp = new Fingerprint(loc, System.currentTimeMillis(), player.getUniqueId(), reason, metadata);
 		container.addFingerprint(fp);
-		FingerprintPlugin.log("Added fingerprint to container");
+		//FingerprintPlugin.log("Added fingerprint to container");
 		//ParticleEffect pe = new ParticleEffect(Particle.BLOCK_DUST, 0, 0 , 0, 0, 3);
 		//pe.playEffect(loc);
 		reason.playCreationParticle(loc);
-		FingerprintPlugin.log("addFingerprint - FINISH");
+		//FingerprintPlugin.log("addFingerprint - FINISH");
 		return fp;
 	}
 

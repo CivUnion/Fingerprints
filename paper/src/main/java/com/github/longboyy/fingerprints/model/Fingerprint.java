@@ -1,12 +1,16 @@
 package com.github.longboyy.fingerprints.model;
 
+import com.github.longboyy.fingerprints.util.FingerprintUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
+import vg.civcraft.mc.civmodcore.inventory.items.ItemMap;
 import vg.civcraft.mc.civmodcore.inventory.items.ItemUtils;
+import vg.civcraft.mc.civmodcore.inventory.items.MetaUtils;
+import vg.civcraft.mc.civmodcore.nbt.NBTSerialization;
 import vg.civcraft.mc.civmodcore.world.locations.chunkmeta.block.table.TableBasedDataObject;
 
 import java.text.SimpleDateFormat;
@@ -126,6 +130,7 @@ public class Fingerprint {
 		lore.add(Component.text(String.format("Reason: %s", this.getReason().getPrettyName())));
 		ItemUtils.setComponentDisplayName(itemStack, Component.text("Fingerprint").color(TextColor.color(175,175,175)));
 		ItemUtils.setComponentLore(itemStack, lore);
+		itemStack = ItemMap.enrichWithNBT(itemStack, 1,Map.of(FingerprintUtils.FP_NBT_TAG_KEY, true));
 		return itemStack;
 	}
 }

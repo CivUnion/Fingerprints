@@ -1,6 +1,7 @@
 package com.github.longboyy.fingerprints;
 
 import com.github.longboyy.fingerprints.commands.FingerprintCommandManager;
+import com.github.longboyy.fingerprints.listeners.BookListener;
 import com.github.longboyy.fingerprints.listeners.DustListener;
 import com.github.longboyy.fingerprints.listeners.FingerprintListener;
 import com.github.longboyy.fingerprints.model.FingerprintContainer;
@@ -56,6 +57,7 @@ public class FingerprintPlugin extends ACivMod {
 		fingerprintManager = new FingerprintManager(chunkMetaData);
 		this.registerListener(new FingerprintListener(this));
 		this.registerListener(new DustListener(this, fingerprintManager));
+		this.registerListener(new BookListener());
 
 		new FingerprintCommandManager(this);
 	}

@@ -3,10 +3,14 @@ package com.github.longboyy.fingerprints.model;
 import com.github.longboyy.fingerprints.FingerprintPlugin;
 import com.github.longboyy.fingerprints.util.ParticleUtils;
 import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
+import vg.civcraft.mc.civmodcore.particles.ParticleEffect;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -19,7 +23,10 @@ public enum FingerprintReason {
 		}
 
 		return result;
-	}, ParticleUtils::spawnDustParticle),
+	}, ParticleUtils::spawnDustParticle, (loc, player) -> {
+		ParticleEffect effect = new ParticleEffect(Particle.ELECTRIC_SPARK, 0, 0, 0, 0f, 1);
+		effect.playEffect(loc, player);
+	}),
 
 	// Trespassing in a vault bastion field may result in trespassing.
 	TRESPASSING("Trespassing", conf -> {
@@ -30,7 +37,10 @@ public enum FingerprintReason {
 		}
 
 		return result;
-	}, ParticleUtils::spawnDustParticle),
+	}, ParticleUtils::spawnDustParticle, (loc, player) -> {
+		ParticleEffect effect = new ParticleEffect(Particle.ELECTRIC_SPARK, 0, 0, 0, 0f, 1);
+		effect.playEffect(loc, player);
+	}),
 
 	// Attempting to open a container (regardless of any locks) may result in rummaging
 	/**
@@ -44,7 +54,10 @@ public enum FingerprintReason {
 		}
 
 		return result;
-	}, ParticleUtils::spawnDustParticle),
+	}, ParticleUtils::spawnDustParticle, (loc, player) -> {
+		ParticleEffect effect = new ParticleEffect(Particle.ELECTRIC_SPARK, 0, 0, 0, 0f, 1);
+		effect.playEffect(loc, player);
+	}),
 
 	// Attempting to take an item from a container, or take an item from an item frame or armor stand may result in theft.
 	THEFT("Theft", conf -> {
@@ -55,7 +68,10 @@ public enum FingerprintReason {
 		}
 
 		return result;
-	}, ParticleUtils::spawnDustParticle),
+	}, ParticleUtils::spawnDustParticle, (loc, player) -> {
+		ParticleEffect effect = new ParticleEffect(Particle.ELECTRIC_SPARK, 0, 0, 0, 0f, 1);
+		effect.playEffect(loc, player);
+	}),
 
 	// Hitting another player or their pet may result in assault.
 	ASSAULT("Assault", conf -> {
@@ -68,7 +84,10 @@ public enum FingerprintReason {
 		}
 
 		return result;
-	}, ParticleUtils::spawnDustParticle),
+	}, ParticleUtils::spawnDustParticle, (loc, player) -> {
+		ParticleEffect effect = new ParticleEffect(Particle.ELECTRIC_SPARK, 0, 0, 0, 0f, 1);
+		effect.playEffect(loc, player);
+	}),
 
 	// Killing another player or their pet may result in murder. (Always apply murder when player killed)
 	MURDER("Murder", conf -> {
@@ -81,7 +100,10 @@ public enum FingerprintReason {
 		}
 
 		return result;
-	}, ParticleUtils::spawnDustParticle),
+	}, ParticleUtils::spawnDustParticle, (loc, player) -> {
+		ParticleEffect effect = new ParticleEffect(Particle.ELECTRIC_SPARK, 0, 0, 0, 0f, 1);
+		effect.playEffect(loc, player);
+	}),
 
 	// Breaking any block or bastion may result in vandalism.
 	VANDALISM("Vandalism", conf -> {
@@ -93,22 +115,28 @@ public enum FingerprintReason {
 		}
 
 		return result;
-	}, ParticleUtils::spawnDustParticle);
+	}, ParticleUtils::spawnDustParticle, (loc, player) -> {
+		ParticleEffect effect = new ParticleEffect(Particle.ELECTRIC_SPARK, 0, 0, 0, 0f, 1);
+		effect.playEffect(loc, player);
+	});
 
 	protected final String prettyName;
 
+
 	private final Function<ConfigurationSection, Map<String, Object>> settingFunc;
 	private final Consumer<Location> creationParticleFunc;
+	private final BiConsumer<Location, Player> displayParticleFunc;
 
 	protected final String configKey;
 
 	protected final Map<String, Object> settings = new HashMap<>();
 
-	FingerprintReason(String prettyName, Function<ConfigurationSection, Map<String, Object>> settingFunc, Consumer<Location> creationParticleFunc){
+	FingerprintReason(String prettyName, Function<ConfigurationSection, Map<String, Object>> settingFunc, Consumer<Location> creationParticleFunc, BiConsumer<Location, Player> displayParticle){
 		this.prettyName = prettyName;
 		this.configKey = this.name().toLowerCase();
 		this.settingFunc = settingFunc;
 		this.creationParticleFunc = creationParticleFunc;
+		this.displayParticleFunc = displayParticle;
 	}
 
 	public void parseConfig(ConfigurationSection section){
@@ -118,6 +146,10 @@ public enum FingerprintReason {
 
 	public void playCreationParticle(Location loc){
 		creationParticleFunc.accept(loc);
+	}
+
+	public void playDisplayParticle(Location loc, Player player){
+		displayParticleFunc.accept(loc, player);
 	}
 
 	public <T> T getSetting(String key){
@@ -138,7 +170,7 @@ public enum FingerprintReason {
 
 	public <T> T getSetting(String key, T defaultValue){
 		T value = this.getSetting(key);
-		FingerprintPlugin.log(String.format("SETTING %s[%s]", key, value == null ? null : value.toString()));
+		//FingerprintPlugin.log(String.format("SETTING %s[%s]", key, value == null ? null : value.toString()));
 		return value == null ? defaultValue : value;
 	}
 
