@@ -75,6 +75,18 @@ public class FingerprintsConfig extends ConfigParser {
 			}
 		}
 
+		if(config.isConfigurationSection("custom_model_ids")){
+			ConfigurationSection modelIDs = config.getConfigurationSection("custom_model_ids");
+			Integer fpID = modelIDs.getInt("fingerprint");
+			Integer bookID = modelIDs.getInt("fingerprint_book");
+			if(fpID > -1){
+				this.fingerprintCustomModelData = fpID;
+			}
+			if(bookID > -1){
+				this.bookCustomModelData = bookID;
+			}
+		}
+
 		ItemManager.register(
 				NamespacedKey.fromString("fingerprint_duster", this.plugin),
 				dusterItem.getA()
@@ -126,6 +138,6 @@ public class FingerprintsConfig extends ConfigParser {
 	}
 
 	public int getFingerprintCustomModelData(){
-		return this.getFingerprintCustomModelData();
+		return this.fingerprintCustomModelData;
 	}
 }

@@ -1,12 +1,16 @@
 package com.github.longboyy.fingerprints.model;
 
 import com.github.longboyy.fingerprints.util.FingerprintUtils;
+import com.github.longboyy.fingerprints.FingerprintPlugin;
+
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
+
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
+
 import vg.civcraft.mc.civmodcore.inventory.items.ItemMap;
 import vg.civcraft.mc.civmodcore.inventory.items.ItemUtils;
 import vg.civcraft.mc.civmodcore.inventory.items.MetaUtils;
@@ -127,8 +131,12 @@ public class Fingerprint {
 		lore.add(Component.text(String.format("Reason: %s", new Object[] { getReason().getPrettyName() })));
 		ItemUtils.setComponentDisplayName(itemStack, Component.text("Fingerprint").color(TextColor.color(175, 175, 175)));
 		ItemUtils.setComponentLore(itemStack, lore);
+
+		Integer fpCustomID = FingerprintPlugin.instance().config().getBookCustomModelData();
+
 		itemStack = ItemMap.enrichWithNBT(itemStack, 1, Map.of(FingerprintUtils.FP_NBT_TAG_KEY, true));
 		itemStack = ItemMap.enrichWithNBT(itemStack, 1, Map.of("FingerprintOwner", fpUUID.toString()));
+		itemStack = ItemMap.enrichWithNBT(itemStack, 1, Map.of("CustomModelData", fpCustomID));
 		return itemStack;
 	}
 }

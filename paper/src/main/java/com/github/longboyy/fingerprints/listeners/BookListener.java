@@ -1,8 +1,11 @@
 package com.github.longboyy.fingerprints.listeners;
 
+import com.github.longboyy.fingerprints.FingerprintPlugin;
 import com.github.longboyy.fingerprints.util.FingerprintUtils;
 import com.github.longboyy.fingerprints.util.MoreItemUtils;
+
 import net.minecraft.world.item.ItemUtils;
+
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -14,6 +17,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.BookMeta;
+
 import vg.civcraft.mc.civmodcore.inventory.items.ItemMap;
 
 import java.util.Map;
@@ -43,12 +47,16 @@ public class BookListener implements Listener {
 		mainItem.setType(Material.WRITTEN_BOOK);
 		BookMeta meta = (BookMeta)mainItem.getItemMeta();
 		String[] fpOwners = new String[0];
+
 		meta.setTitle("Fingerprint Compendium");
 		meta.setAuthor(player.getName());
 		mainItem.setItemMeta(meta);
+
+		Integer BookCustomID = FingerprintPlugin.instance().config().getBookCustomModelData();
+
 		ItemStack enriched = ItemMap.enrichWithNBT(mainItem, 1, Map.of(FingerprintUtils.FP_BOOK_NBT_TAG_KEY, true));
 		ItemStack enriched2 = ItemMap.enrichWithNBT(enriched, 1, Map.of("FingerprintOwners", fpOwners));
-		ItemStack enriched3 = ItemMap.enrichWithNBT(enriched2, 1, Map.of("CustomModelData", 10001));
+		ItemStack enriched3 = ItemMap.enrichWithNBT(enriched2, 1, Map.of("CustomModelData", BookCustomID));
 		mainItem.setItemMeta(enriched3.getItemMeta());
     } else {
 		BookMeta meta = (BookMeta)mainItem.getItemMeta();
