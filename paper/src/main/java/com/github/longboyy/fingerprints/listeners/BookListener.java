@@ -21,50 +21,44 @@ import java.util.Map;
 public class BookListener implements Listener {
 
 	@EventHandler(priority = EventPriority.HIGHEST)
-	public void OnBookCreation(PlayerInteractEvent event){
-		if(event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK){
-			return;
-		}
+	public void OnBookCreation(PlayerInteractEvent event) {
+    if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK)
+    	return; 
 
-		Player player = event.getPlayer();
-		if(!player.isSneaking()){
-			return;
-		}
+    Player player = event.getPlayer();
+    if (!player.isSneaking())
+		return;
 
-		PlayerInventory playerInv = player.getInventory();
-		//ItemStack usedItem = player.getHandRaised() == EquipmentSlot.HAND ? playerInv.getItemInMainHand() : playerInv.getItemInOffHand();
-		ItemStack mainItem = playerInv.getItemInMainHand();
-		ItemStack offItem = playerInv.getItemInOffHand();
+    PlayerInventory playerInv = player.getInventory();
+    ItemStack mainItem = playerInv.getItemInMainHand();
+    ItemStack offItem = playerInv.getItemInOffHand();
 
-		if(!FingerprintUtils.isFingerprint(offItem) || (!FingerprintUtils.isFingerprintBook(mainItem) && mainItem.getType() != Material.BOOK)){
-			return;
-		}
+    if (!FingerprintUtils.isFingerprint(offItem) || (!FingerprintUtils.isFingerprintBook(mainItem) && mainItem.getType() != Material.BOOK))
+		return;
 
-		if(mainItem.getAmount() > 1){
-			return;
-		}
+    if (mainItem.getAmount() > 1)
+		return; 
 
-		if(mainItem.getType() == Material.BOOK){
-			mainItem.setType(Material.WRITTEN_BOOK);
-			BookMeta meta = (BookMeta) mainItem.getItemMeta();
-			meta.setTitle("Fingerprint Compendium");
-			meta.setAuthor(player.getName());
-			mainItem.setItemMeta(meta);
-			ItemStack enriched = ItemMap.enrichWithNBT(mainItem, 1, Map.of(FingerprintUtils.FP_BOOK_NBT_TAG_KEY, true));
-			mainItem.setItemMeta(enriched.getItemMeta());
-		} else {
-			BookMeta meta = (BookMeta) mainItem.getItemMeta();
-			//meta.page
-			//check if book is full
-			if(meta.getPageCount() == 100){
-				return;
-			}
-		}
+    if (mainItem.getType() == Material.BOOK) {
+		mainItem.setType(Material.WRITTEN_BOOK);
+		BookMeta meta = (BookMeta)mainItem.getItemMeta();
+		String[] fpOwners = new String[0];
+		meta.setTitle("Fingerprint Compendium");
+		meta.setAuthor(player.getName());
+		mainItem.setItemMeta((ItemMeta)meta);
+		ItemStack enriched = ItemMap.enrichWithNBT(mainItem, 1, Map.of(FingerprintUtils.FP_BOOK_NBT_TAG_KEY, Boolean.valueOf(true)));
+		ItemStack enriched2 = ItemMap.enrichWithNBT(enriched, 1, Map.of("FingerprintOwners", fpOwners));
+		mainItem.setItemMeta(enriched2.getItemMeta());
+    } else {
+		BookMeta meta = (BookMeta)mainItem.getItemMeta();
+		if (meta.getPageCount() == 100)
+		return; 
+    } 
 
-		FingerprintUtils.addFingerprintToBook(mainItem, offItem);
-		ItemMap map = new ItemMap(offItem.asOne());
-		map.removeSafelyFrom(playerInv);
-		event.setCancelled(true);
+    FingerprintUtils.addFingerprintToBook(mainItem, offItem);
+    ItemMap map = new ItemMap(offItem.asOne());
+    map.removeSafelyFrom((Inventory)playerInv);
+    event.setCancelled(true);
 
 	}
 
