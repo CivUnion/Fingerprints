@@ -127,8 +127,8 @@ public class Fingerprint {
 		lore.add(Component.text(String.format("Reason: %s", new Object[] { getReason().getPrettyName() })));
 		ItemUtils.setComponentDisplayName(itemStack, Component.text("Fingerprint").color(TextColor.color(175, 175, 175)));
 		ItemUtils.setComponentLore(itemStack, lore);
-		itemStack = ItemMap.enrichWithNBT(itemStack, 1, Map.of(FingerprintUtils.FP_NBT_TAG_KEY, Boolean.valueOf(true)));
-		itemStack = ItemMap.enrichWithNBT(itemStack, 1, Map.of("FingerprintOwner", getPlayerId().toString()));
+		itemStack = ItemMap.enrichWithNBT(itemStack, 1, Map.of(FingerprintUtils.FP_NBT_TAG_KEY, true));
+		itemStack = ItemMap.enrichWithNBT(itemStack, 1, Map.of("FingerprintOwner", fpUUID.toString()));
 		return itemStack;
 	}
 }

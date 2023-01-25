@@ -45,10 +45,11 @@ public class BookListener implements Listener {
 		String[] fpOwners = new String[0];
 		meta.setTitle("Fingerprint Compendium");
 		meta.setAuthor(player.getName());
-		mainItem.setItemMeta((ItemMeta)meta);
-		ItemStack enriched = ItemMap.enrichWithNBT(mainItem, 1, Map.of(FingerprintUtils.FP_BOOK_NBT_TAG_KEY, Boolean.valueOf(true)));
+		mainItem.setItemMeta(meta);
+		ItemStack enriched = ItemMap.enrichWithNBT(mainItem, 1, Map.of(FingerprintUtils.FP_BOOK_NBT_TAG_KEY, true));
 		ItemStack enriched2 = ItemMap.enrichWithNBT(enriched, 1, Map.of("FingerprintOwners", fpOwners));
-		mainItem.setItemMeta(enriched2.getItemMeta());
+		ItemStack enriched3 = ItemMap.enrichWithNBT(enriched2, 1, Map.of("CustomModelData", 10001));
+		mainItem.setItemMeta(enriched3.getItemMeta());
     } else {
 		BookMeta meta = (BookMeta)mainItem.getItemMeta();
 		if (meta.getPageCount() == 100)
@@ -57,7 +58,7 @@ public class BookListener implements Listener {
 
     FingerprintUtils.addFingerprintToBook(mainItem, offItem);
     ItemMap map = new ItemMap(offItem.asOne());
-    map.removeSafelyFrom((Inventory)playerInv);
+    map.removeSafelyFrom(playerInv);
     event.setCancelled(true);
 
 	}
