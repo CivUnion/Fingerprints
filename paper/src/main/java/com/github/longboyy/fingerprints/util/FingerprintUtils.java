@@ -7,6 +7,8 @@ import com.github.longboyy.fingerprints.model.FingerprintContainer;
 import com.github.longboyy.fingerprints.model.FingerprintReason;
 import net.kyori.adventure.text.Component;
 import net.minecraft.nbt.CompoundTag;
+
+import org.apache.commons.lang.ObjectUtils.Null;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -85,18 +87,7 @@ public class FingerprintUtils {
 			}
 		}
 
-		int yLim = block.getY()+64;
-		
-		for (int i = 0; i < yLim ; i++ ){
-			Location checker = block.getLocation();
-			checker.setY((double) block.getY()-i);
-			Block checkedBlock = checker.getBlock();
-			if (checkedBlock.isSolid()){
-				return checkedBlock.getLocation();
-			}
-		}
-
-		return block.getLocation();
+		return null;
 	}
 
 
