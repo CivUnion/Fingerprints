@@ -313,7 +313,7 @@ public class FingerprintListener implements Listener {
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onBastionDamage(BastionDamageEvent event){
 		Player player = event.getPlayer();
-		Location loc = FingerprintUtils.getClosestNonAir(player.getLocation());
+		Location loc = FingerprintUtils.getClosestNonAir(event.getBastion().getLocation());
 
 		double chance = FingerprintReason.VANDALISM.getSetting("bastion_break_chance", 0.11D);
 
@@ -328,22 +328,12 @@ public class FingerprintListener implements Listener {
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onBlockBreak(BlockBreakEvent event){
 		Player player = event.getPlayer();
-		Location loc = event.getBlock().getLocation();
-
-		Block block = loc.getBlock();
-		BlockIterator blockIterator = new BlockIterator(loc, 0, 1);
-		do{
-			Block b = blockIterator.next();
-			if(b.isEmpty()){
-				block = b;
-				break;
-			}
-		}while(blockIterator.hasNext());
+		Location loc = FingerprintUtils.getClosestNonAir(event.getBlock().getLocation());
 
 		double chance = FingerprintReason.VANDALISM.getSetting("block_break_chance", 0.05D);
 
 		if(FingerprintUtils.checkChance(chance)){
-			FingerprintUtils.addFingerprint(block.getLocation(), player, FingerprintReason.VANDALISM);
+			FingerprintUtils.addFingerprint(loc, player, FingerprintReason.VANDALISM);
 		}
 	}
 
