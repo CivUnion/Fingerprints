@@ -132,7 +132,7 @@ public class Fingerprint {
 		ItemUtils.setComponentDisplayName(itemStack, Component.text("Fingerprint").color(TextColor.color(175, 175, 175)));
 		ItemUtils.setComponentLore(itemStack, lore);
 
-		Integer fpCustomID = FingerprintPlugin.instance().config().getBookCustomModelData();
+		Integer fpCustomID = FingerprintPlugin.instance().config().getFingerprintCustomModelData();
 
 		itemStack = ItemMap.enrichWithNBT(itemStack, 1, Map.of(FingerprintUtils.FP_NBT_TAG_KEY, true));
 		itemStack = ItemMap.enrichWithNBT(itemStack, 1, Map.of("FingerprintOwner", fpUUID.toString()));

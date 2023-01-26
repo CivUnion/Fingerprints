@@ -85,6 +85,17 @@ public class FingerprintUtils {
 			}
 		}
 
+		int yLim = block.getY()+64;
+		
+		for (int i = 0; i < yLim ; i++ ){
+			Location checker = block.getLocation();
+			checker.setY((double) block.getY()-i);
+			Block checkedBlock = checker.getBlock();
+			if (checkedBlock.isSolid()){
+				return checkedBlock.getLocation();
+			}
+		}
+
 		return block.getLocation();
 	}
 
