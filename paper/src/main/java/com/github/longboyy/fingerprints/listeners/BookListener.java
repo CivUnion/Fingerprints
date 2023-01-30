@@ -47,6 +47,8 @@ public class BookListener implements Listener {
 		mainItem.setType(Material.WRITTEN_BOOK);
 		BookMeta meta = (BookMeta)mainItem.getItemMeta();
 		String[] fpOwners = new String[0];
+		String[] savLocArr = new String[0];
+		long[] crtTimeArr = new long[0];
 
 		meta.setTitle("Fingerprint Compendium");
 		meta.setAuthor(player.getName());
@@ -57,7 +59,9 @@ public class BookListener implements Listener {
 		ItemStack enriched = ItemMap.enrichWithNBT(mainItem, 1, Map.of(FingerprintUtils.FP_BOOK_NBT_TAG_KEY, true));
 		ItemStack enriched2 = ItemMap.enrichWithNBT(enriched, 1, Map.of("FingerprintOwners", fpOwners));
 		ItemStack enriched3 = ItemMap.enrichWithNBT(enriched2, 1, Map.of("CustomModelData", BookCustomID));
-		mainItem.setItemMeta(enriched3.getItemMeta());
+		ItemStack enriched4 = ItemMap.enrichWithNBT(enriched3, 1, Map.of("savedLocArr", savLocArr));
+		ItemStack enriched5 = ItemMap.enrichWithNBT(enriched4, 1, Map.of("crtTimeArr", crtTimeArr));
+		mainItem.setItemMeta(enriched5.getItemMeta());
     } else {
 		BookMeta meta = (BookMeta)mainItem.getItemMeta();
 		if (meta.getPageCount() == 100)

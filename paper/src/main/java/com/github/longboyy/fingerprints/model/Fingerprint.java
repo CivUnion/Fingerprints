@@ -134,9 +134,13 @@ public class Fingerprint {
 
 		Integer fpCustomID = FingerprintPlugin.instance().config().getFingerprintCustomModelData();
 
+		String savedLoc = loc.getX() + "," + loc.getY() + "," + loc.getZ();
+
 		itemStack = ItemMap.enrichWithNBT(itemStack, 1, Map.of(FingerprintUtils.FP_NBT_TAG_KEY, true));
 		itemStack = ItemMap.enrichWithNBT(itemStack, 1, Map.of("FingerprintOwner", fpUUID.toString()));
 		itemStack = ItemMap.enrichWithNBT(itemStack, 1, Map.of("CustomModelData", fpCustomID));
+		itemStack = ItemMap.enrichWithNBT(itemStack, 1, Map.of("fpLocation", savedLoc));
+		itemStack = ItemMap.enrichWithNBT(itemStack, 1, Map.of("createTime", this.createdAt));
 		return itemStack;
 	}
 }

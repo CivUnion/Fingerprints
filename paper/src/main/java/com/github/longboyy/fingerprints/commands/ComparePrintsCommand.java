@@ -31,7 +31,6 @@ public class ComparePrintsCommand extends BaseCommand {
 
             NBTCompound bookNBT = NBTSerialization.fromItem(mainItem);
             String[] fpOwners = bookNBT.getStringArray("FingerprintOwners");
-
             int placeInBook = Arrays.<String>asList(fpOwners).indexOf(printUUID) + 1;
 
             if (placeInBook > 0) {
