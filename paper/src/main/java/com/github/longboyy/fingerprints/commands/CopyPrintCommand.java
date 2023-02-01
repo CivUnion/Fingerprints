@@ -94,9 +94,9 @@ public class CopyPrintCommand extends BaseCommand {
         
         NBTCompound mainNBT = NBTSerialization.fromItem(book);
         BookMeta meta = (BookMeta)book.getItemMeta();
-        int page = Integer.parseInt(args[0]);
+        int page = Integer.parseInt(args[0])-1;
 
-        if (page > meta.getPageCount()) {
+        if (page > meta.getPageCount() || page < 0) {
             player.sendMessage(
 					Component.text("Copying failed! You denoted a page that doesn't exist")
 							.color(TextColor.color(255, 0, 0)));
