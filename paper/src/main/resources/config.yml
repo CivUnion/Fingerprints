@@ -41,17 +41,18 @@ items:
       - 'This could be used to see fingerprints'
 
 # Integer denoting which effect you want a specific action to cause
+  # Options (Must be in caps):
   # 11 = CRIT_MAGIC,
   # 30 = REDSTONE,
   # 90 = ELECTRIC_SPARK,
 effects:
-  volunEffect: 90
-  trespassEffect: 90
-  rummageEffect: 90
-  theftEffect: 90
-  assaultEffect: 30
-  murderEffect: 30
-  vandaEffect: 90
+  volunEffect: ELECTRIC_SPARK
+  trespassEffect: ELECTRIC_SPARK
+  rummageEffect: ELECTRIC_SPARK
+  theftEffect: ELECTRIC_SPARK
+  assaultEffect: REDSTONE
+  murderEffect: REDSTONE
+  vandaEffect: ELECTRIC_SPARK
   
 
 # ALL CHANCES ARE 0-1 PERCENTAGE
