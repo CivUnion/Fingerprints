@@ -98,26 +98,26 @@ public class FingerprintsConfig extends ConfigParser {
 		if(config.isConfigurationSection("effects")){
 			ConfigurationSection effectSect = config.getConfigurationSection("effects");
 
-			Integer volunEffectNum = effectSect.getInt("volunEffect");
-			Particle volunEffect = Particle.values()[volunEffectNum];
-			
-			Integer trespassEffectNum = effectSect.getInt("trespassEffect");
-			Particle trespassEffect = Particle.values()[trespassEffectNum];
+			String volunEffectString = effectSect.getString("volunEffect");
+			Particle volunEffect = Particle.valueOf(volunEffectString);
 
-			Integer rummageEffectNum = effectSect.getInt("rummageEffect");
-			Particle rummageEffect = Particle.values()[rummageEffectNum];
+			String trespassEffectString = effectSect.getString("trespassEffect");
+			Particle trespassEffect = Particle.valueOf(trespassEffectString);
 
-			Integer theftEffectNum = effectSect.getInt("theftEffect");
-			Particle theftEffect = Particle.values()[theftEffectNum];
+			String rummageEffectString = effectSect.getString("rummageEffect");
+			Particle rummageEffect = Particle.valueOf(rummageEffectString);
 
-			Integer assaultEffectNum = effectSect.getInt("assaultEffect");
-			Particle assaultEffect = Particle.values()[assaultEffectNum];
+			String theftEffectString = effectSect.getString("theftEffect");
+			Particle theftEffect = Particle.valueOf(theftEffectString);
 
-			Integer murderEffectNum = effectSect.getInt("murderEffect");
-			Particle murderEffect = Particle.values()[murderEffectNum];
+			String assaultEffectString = effectSect.getString("assaultEffect");
+			Particle assaultEffect = Particle.valueOf(assaultEffectString);
 
-			Integer vandaEffectNum = effectSect.getInt("vandaEffect");
-			Particle vandaEffect = Particle.values()[vandaEffectNum];
+			String murderEffectString = effectSect.getString("murderEffect");
+			Particle murderEffect = Particle.valueOf(murderEffectString);
+
+			String vandaEffectString = effectSect.getString("vandaEffect");
+			Particle vandaEffect = Particle.valueOf(vandaEffectString);
 
 			this.volunEffect = volunEffect;
 			this.trespassEffect = trespassEffect;
