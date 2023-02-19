@@ -49,6 +49,8 @@ public class FingerprintListener implements Listener {
 		if(reason == null || player == null || victim == null){
 			FingerprintPlugin.log("MURDER/ASSAULT - REASON, PLAYER, OR VICTIM IS NULL");
 			return;
+		} else if (FingerprintUtils.getClosestNonAir(victim.getLocation()) == null) {
+			return;
 		}
 
 		double baseChance;
@@ -62,6 +64,7 @@ public class FingerprintListener implements Listener {
 			return;
 		}
 
+		 
 		Location loc = FingerprintUtils.getClosestNonAir(victim.getLocation());
 		Set<BastionBlock> bastions = Bastion.getBastionManager().getBlockingBastions(loc);
 
@@ -87,6 +90,7 @@ public class FingerprintListener implements Listener {
 		}else{
 			FingerprintPlugin.log("MURDER/ASSAULT - FAILED CHANCE");
 		}
+
 	}
 
 	private static final Set<InventoryType> VALID_CONTAINERS = ImmutableSet.of(
@@ -313,9 +317,13 @@ public class FingerprintListener implements Listener {
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onBastionDamage(BastionDamageEvent event){
 		Player player = event.getPlayer();
-		Location loc = FingerprintUtils.getClosestNonAir(player.getLocation());
-
+		if (FingerprintUtils.getClosestNonAir(event.getBastion().getLocation()) == null) {
+			return;
+		}
+		Location loc = FingerprintUtils.getClosestNonAir(event.getBastion().getLocation());
 		double chance = FingerprintReason.VANDALISM.getSetting("bastion_break_chance", 0.11D);
+
+		
 
 		if(FingerprintUtils.checkChance(chance)){
 			FingerprintUtils.addFingerprint(loc, player, FingerprintReason.VANDALISM);
@@ -328,22 +336,16 @@ public class FingerprintListener implements Listener {
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void onBlockBreak(BlockBreakEvent event){
 		Player player = event.getPlayer();
-		Location loc = event.getBlock().getLocation();
 
-		Block block = loc.getBlock();
-		BlockIterator blockIterator = new BlockIterator(loc, 0, 1);
-		do{
-			Block b = blockIterator.next();
-			if(b.isEmpty()){
-				block = b;
-				break;
-			}
-		}while(blockIterator.hasNext());
+		if (FingerprintUtils.getClosestNonAir(event.getBlock().getLocation()) == null) {
+			return;
+		}
+		Location loc = FingerprintUtils.getClosestNonAir(event.getBlock().getLocation());
 
 		double chance = FingerprintReason.VANDALISM.getSetting("block_break_chance", 0.05D);
 
 		if(FingerprintUtils.checkChance(chance)){
-			FingerprintUtils.addFingerprint(block.getLocation(), player, FingerprintReason.VANDALISM);
+			FingerprintUtils.addFingerprint(loc, player, FingerprintReason.VANDALISM);
 		}
 	}
 

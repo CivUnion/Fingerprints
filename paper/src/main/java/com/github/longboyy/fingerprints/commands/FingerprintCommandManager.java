@@ -22,5 +22,6 @@ public class FingerprintCommandManager extends CommandManager {
 		super.registerCommands();
 		this.registerCommand(new DustCommand());
 		this.registerCommand(new ReloadConfigCommand());
+		this.registerCommand(new ComparePrintsCommand());
 	}
 }

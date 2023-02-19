@@ -1,12 +1,16 @@
 package com.github.longboyy.fingerprints.model;
 
 import com.github.longboyy.fingerprints.util.FingerprintUtils;
+import com.github.longboyy.fingerprints.FingerprintPlugin;
+
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
+
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
+
 import vg.civcraft.mc.civmodcore.inventory.items.ItemMap;
 import vg.civcraft.mc.civmodcore.inventory.items.ItemUtils;
 import vg.civcraft.mc.civmodcore.inventory.items.MetaUtils;
@@ -113,24 +117,30 @@ public class Fingerprint {
 
 	public ItemStack asItem(){
 		String collectDate = FORMATTER.format(new Date());
-
 		ItemStack itemStack = new ItemStack(Material.PAPER);
-		//String hashString = Hashing.sha256().hashString(fingerprint.getPlayerId().toString()+".test", StandardCharsets.UTF_8).toString();
-		UUID fpUUID = UUID.nameUUIDFromBytes((this.getPlayerId().toString() + ".test").getBytes());
+		UUID fpUUID = UUID.nameUUIDFromBytes((getPlayerId().toString() + ".test").getBytes());
 		List<Component> lore = new ArrayList<>();
-		//Splitter.fixedLength(16).split(hashString).forEach(str -> lore.add(Component.text(str)));
 		lore.add(Component.text("Fingerprint"));
 		lore.add(Component.text(fpUUID.toString()));
 		lore.add(Component.empty());
 		lore.add(Component.text("Location:"));
-		Location loc = this.getLocation();
-		lore.add(Component.text(String.format("X: %d, Y: %d, Z: %d", loc.getBlockX(), loc.getBlockY(), loc.getBlockZ())));
-		lore.add(Component.text(String.format("Collected on: %s", collectDate)));
-		lore.add(Component.text(String.format("Created: %s", this.getVagueTime())));
-		lore.add(Component.text(String.format("Reason: %s", this.getReason().getPrettyName())));
-		ItemUtils.setComponentDisplayName(itemStack, Component.text("Fingerprint").color(TextColor.color(175,175,175)));
+		Location loc = getLocation();
+		lore.add(Component.text(String.format("X: %d, Y: %d, Z: %d", new Object[] { Integer.valueOf(loc.getBlockX()), Integer.valueOf(loc.getBlockY()), Integer.valueOf(loc.getBlockZ()) })));
+		lore.add(Component.text(String.format("Collected on: %s", new Object[] { collectDate })));
+		lore.add(Component.text(String.format("Created: %s", new Object[] { getVagueTime() })));
+		lore.add(Component.text(String.format("Reason: %s", new Object[] { getReason().getPrettyName() })));
+		ItemUtils.setComponentDisplayName(itemStack, Component.text("Fingerprint").color(TextColor.color(175, 175, 175)));
 		ItemUtils.setComponentLore(itemStack, lore);
-		itemStack = ItemMap.enrichWithNBT(itemStack, 1,Map.of(FingerprintUtils.FP_NBT_TAG_KEY, true));
+
+		Integer fpCustomID = FingerprintPlugin.instance().config().getFingerprintCustomModelData();
+
+		String savedLoc = loc.getX() + "," + loc.getY() + "," + loc.getZ();
+
+		itemStack = ItemMap.enrichWithNBT(itemStack, 1, Map.of(FingerprintUtils.FP_NBT_TAG_KEY, true));
+		itemStack = ItemMap.enrichWithNBT(itemStack, 1, Map.of("FingerprintOwner", fpUUID.toString()));
+		itemStack = ItemMap.enrichWithNBT(itemStack, 1, Map.of("CustomModelData", fpCustomID));
+		itemStack = ItemMap.enrichWithNBT(itemStack, 1, Map.of("fpLocation", savedLoc));
+		itemStack = ItemMap.enrichWithNBT(itemStack, 1, Map.of("createTime", this.createdAt));
 		return itemStack;
 	}
 }

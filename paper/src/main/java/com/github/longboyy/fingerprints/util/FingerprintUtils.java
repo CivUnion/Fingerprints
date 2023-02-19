@@ -7,6 +7,8 @@ import com.github.longboyy.fingerprints.model.FingerprintContainer;
 import com.github.longboyy.fingerprints.model.FingerprintReason;
 import net.kyori.adventure.text.Component;
 import net.minecraft.nbt.CompoundTag;
+
+import org.apache.commons.lang.ObjectUtils.Null;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -85,7 +87,7 @@ public class FingerprintUtils {
 			}
 		}
 
-		return block.getLocation();
+		return null;
 	}
 
 
@@ -113,15 +115,45 @@ public class FingerprintUtils {
 		return tag != null && tag.hasKey(FP_BOOK_NBT_TAG_KEY) && tag.getBoolean(FP_BOOK_NBT_TAG_KEY);
 	}
 
-	public static void addFingerprintToBook(ItemStack book, ItemStack item){
-		BookMeta meta = (BookMeta) book.getItemMeta();
-		Component comps = Component.empty();
-		for(Component comp : MetaUtils.getComponentLore(item.getItemMeta())){
-			comps = comps.append(comp).append(Component.newline());
+	public static void addFingerprintToBook(ItemStack book, ItemStack item) {
+        final BookMeta meta = (BookMeta)book.getItemMeta();
+        Component comps = (Component)Component.empty();
+
+        for (final Component comp : MetaUtils.getComponentLore(item.getItemMeta())) {
+            comps = comps.append(comp).append((Component)Component.newline());
+        }
+
+        final NBTCompound itemNBT = NBTSerialization.fromItem(item);
+        final NBTCompound bookNBT = NBTSerialization.fromItem(book);
+        final String[] fpOwners = bookNBT.getStringArray("FingerprintOwners");
+        final String[] newFpOwners = new String[fpOwners.length + 1];
+        int i;
+        for (i = 0; i < fpOwners.length; ++i) {
+            newFpOwners[i] = fpOwners[i];
 		}
-		meta.addPages(comps);
-		book.setItemMeta(meta);
-	}
+		
+        final String[] savedLocations = bookNBT.getStringArray("savedLocArr");
+        final String[] newsavedLocations = new String[savedLocations.length + 1];
+        for (i = 0; i < savedLocations.length; ++i) {
+            newsavedLocations[i] = savedLocations[i];
+        }
+
+		final long[] createTimeArray = bookNBT.getLongArray("crtTimeArr");
+        final long[] newcreateTimeArray = new long[createTimeArray.length + 1];
+        for (i = 0; i < createTimeArray.length; ++i) {
+            newcreateTimeArray[i] = createTimeArray[i];
+        }
+		
+		newFpOwners[i] = itemNBT.getString("FingerprintOwner");
+		newsavedLocations[i] = itemNBT.getString("fpLocation");
+        newcreateTimeArray[i] = itemNBT.getLong("crtTimeArr");
+
+        meta.addPages(new Component[] { comps });
+        book.setItemMeta(meta);
+        NBTSerialization.fromItem(book).setStringArray("FingerprintOwners", newFpOwners);
+		NBTSerialization.fromItem(book).setStringArray("savedLocArr", newsavedLocations);
+		NBTSerialization.fromItem(book).setLongArray("crtTimeArr", newcreateTimeArray);
+    }
 
 	public static Fingerprint addFingerprint(Location loc, Player player, FingerprintReason reason){
 		return addFingerprint(loc, player, reason, new HashMap<>());

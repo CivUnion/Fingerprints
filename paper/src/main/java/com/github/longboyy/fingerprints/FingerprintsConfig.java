@@ -4,6 +4,7 @@ import com.github.longboyy.fingerprints.model.FingerprintReason;
 import com.github.longboyy.fingerprints.util.FingerprintUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import oshi.util.tuples.Pair;
@@ -28,6 +29,14 @@ public class FingerprintsConfig extends ConfigParser {
 	private int bookCustomModelData = -1;
 	private int fingerprintCustomModelData = -1;
 
+	private Particle volunEffect;
+	private Particle trespassEffect;
+	private Particle rummageEffect;
+	private Particle theftEffect;
+	private Particle assaultEffect;
+	private Particle murderEffect;
+	private Particle vandaEffect;
+
 	public FingerprintsConfig(FingerprintPlugin plugin) {
 		super(plugin);
 	}
@@ -37,7 +46,6 @@ public class FingerprintsConfig extends ConfigParser {
 		if(this.database == null) {
 			this.database = ManagedDatasource.construct((ACivMod) plugin, (DatabaseCredentials) config.get("database"));
 		}
-
 
 		this.maxPrintsPerBlock = config.getInt("max_prints_per_block", 5);
 
@@ -73,6 +81,51 @@ public class FingerprintsConfig extends ConfigParser {
 			if(magnifyingGlassItems.size() != 0){
 				magnifyingGlassItem = magnifyingGlassItems.get(0);
 			}
+		}
+
+		if(config.isConfigurationSection("custom_model_ids")){
+			ConfigurationSection modelIDs = config.getConfigurationSection("custom_model_ids");
+			Integer fpID = modelIDs.getInt("fingerprint");
+			Integer bookID = modelIDs.getInt("fingerprint_book");
+			if(fpID > -1){
+				this.fingerprintCustomModelData = fpID;
+			}
+			if(bookID > -1){
+				this.bookCustomModelData = bookID;
+			}
+		}
+
+		if(config.isConfigurationSection("effects")){
+			ConfigurationSection effectSect = config.getConfigurationSection("effects");
+
+			Integer volunEffectNum = effectSect.getInt("volunEffect");
+			Particle volunEffect = Particle.values()[volunEffectNum];
+			
+			Integer trespassEffectNum = effectSect.getInt("trespassEffect");
+			Particle trespassEffect = Particle.values()[trespassEffectNum];
+
+			Integer rummageEffectNum = effectSect.getInt("rummageEffect");
+			Particle rummageEffect = Particle.values()[rummageEffectNum];
+
+			Integer theftEffectNum = effectSect.getInt("theftEffect");
+			Particle theftEffect = Particle.values()[theftEffectNum];
+
+			Integer assaultEffectNum = effectSect.getInt("assaultEffect");
+			Particle assaultEffect = Particle.values()[assaultEffectNum];
+
+			Integer murderEffectNum = effectSect.getInt("murderEffect");
+			Particle murderEffect = Particle.values()[murderEffectNum];
+
+			Integer vandaEffectNum = effectSect.getInt("vandaEffect");
+			Particle vandaEffect = Particle.values()[vandaEffectNum];
+
+			this.volunEffect = volunEffect;
+			this.trespassEffect = trespassEffect;
+			this.rummageEffect = rummageEffect;
+			this.theftEffect = theftEffect;
+			this.assaultEffect = assaultEffect;
+			this.murderEffect = murderEffect;
+			this.vandaEffect = vandaEffect;
 		}
 
 		ItemManager.register(
@@ -126,6 +179,34 @@ public class FingerprintsConfig extends ConfigParser {
 	}
 
 	public int getFingerprintCustomModelData(){
-		return this.getFingerprintCustomModelData();
+		return this.fingerprintCustomModelData;
+	}
+
+	public Particle getVolunEffect(){
+		return this.volunEffect;
+	}
+
+	public Particle getTrespassEffect(){
+		return this.trespassEffect;
+	}
+
+	public Particle getRummageEffect(){
+		return this.rummageEffect;
+	}
+
+	public Particle getTheftEffect(){
+		return this.theftEffect;
+	}
+
+	public Particle getAssaultEffect(){
+		return this.assaultEffect;
+	}
+
+	public Particle getMurderEffect(){
+		return this.murderEffect;
+	}
+
+	public Particle getVandaEffect(){
+		return this.vandaEffect;
 	}
 }

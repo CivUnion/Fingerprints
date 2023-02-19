@@ -40,6 +40,20 @@ items:
       - 'Memories of burning ants'
       - 'This could be used to see fingerprints'
 
+# Integer denoting which effect you want a specific action to cause
+  # 11 = CRIT_MAGIC,
+  # 30 = REDSTONE,
+  # 90 = ELECTRIC_SPARK,
+effects:
+  volunEffect: 90
+  trespassEffect: 90
+  rummageEffect: 90
+  theftEffect: 90
+  assaultEffect: 30
+  murderEffect: 30
+  vandaEffect: 90
+  
+
 # ALL CHANCES ARE 0-1 PERCENTAGE
 reason_settings:
   #complete

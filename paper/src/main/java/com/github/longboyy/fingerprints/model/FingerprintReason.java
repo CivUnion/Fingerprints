@@ -15,7 +15,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public enum FingerprintReason {
-
 	// Created when someone voluntarily prints a fingerprint
 	PRINTED("Printed", conf -> {
 		Map<String, Object> result = new HashMap<>();
@@ -24,7 +23,8 @@ public enum FingerprintReason {
 
 		return result;
 	}, ParticleUtils::spawnDustParticle, (loc, player) -> {
-		ParticleEffect effect = new ParticleEffect(Particle.ELECTRIC_SPARK, 0, 0, 0, 0f, 1);
+		ParticleEffect effect = new ParticleEffect(FingerprintPlugin.instance().config().getVolunEffect()
+			, 0, 0, 0, 0f, 1);
 		effect.playEffect(loc, player);
 	}),
 
@@ -38,7 +38,8 @@ public enum FingerprintReason {
 
 		return result;
 	}, ParticleUtils::spawnDustParticle, (loc, player) -> {
-		ParticleEffect effect = new ParticleEffect(Particle.ELECTRIC_SPARK, 0, 0, 0, 0f, 1);
+		ParticleEffect effect = new ParticleEffect(FingerprintPlugin.instance().config().getTrespassEffect(),
+			0, 0, 0, 0f, 1);
 		effect.playEffect(loc, player);
 	}),
 
@@ -55,7 +56,8 @@ public enum FingerprintReason {
 
 		return result;
 	}, ParticleUtils::spawnDustParticle, (loc, player) -> {
-		ParticleEffect effect = new ParticleEffect(Particle.ELECTRIC_SPARK, 0, 0, 0, 0f, 1);
+		ParticleEffect effect = new ParticleEffect(FingerprintPlugin.instance().config().getRummageEffect(),
+			0, 0, 0, 0f, 1);
 		effect.playEffect(loc, player);
 	}),
 
@@ -69,7 +71,8 @@ public enum FingerprintReason {
 
 		return result;
 	}, ParticleUtils::spawnDustParticle, (loc, player) -> {
-		ParticleEffect effect = new ParticleEffect(Particle.ELECTRIC_SPARK, 0, 0, 0, 0f, 1);
+		ParticleEffect effect = new ParticleEffect(FingerprintPlugin.instance().config().getTheftEffect(),
+			0, 0, 0, 0f, 1);
 		effect.playEffect(loc, player);
 	}),
 
@@ -85,7 +88,8 @@ public enum FingerprintReason {
 
 		return result;
 	}, ParticleUtils::spawnDustParticle, (loc, player) -> {
-		ParticleEffect effect = new ParticleEffect(Particle.ELECTRIC_SPARK, 0, 0, 0, 0f, 1);
+		ParticleEffect effect = new ParticleEffect(FingerprintPlugin.instance().config().getAssaultEffect(),
+			0, 0, 0, 0f, 1);
 		effect.playEffect(loc, player);
 	}),
 
@@ -101,7 +105,8 @@ public enum FingerprintReason {
 
 		return result;
 	}, ParticleUtils::spawnDustParticle, (loc, player) -> {
-		ParticleEffect effect = new ParticleEffect(Particle.ELECTRIC_SPARK, 0, 0, 0, 0f, 1);
+		ParticleEffect effect = new ParticleEffect(FingerprintPlugin.instance().config().getMurderEffect(),
+			0, 0, 0, 0f, 1);
 		effect.playEffect(loc, player);
 	}),
 
@@ -116,7 +121,8 @@ public enum FingerprintReason {
 
 		return result;
 	}, ParticleUtils::spawnDustParticle, (loc, player) -> {
-		ParticleEffect effect = new ParticleEffect(Particle.ELECTRIC_SPARK, 0, 0, 0, 0f, 1);
+		ParticleEffect effect = new ParticleEffect(FingerprintPlugin.instance().config().getVandaEffect(),
+			0, 0, 0, 0f, 1);
 		effect.playEffect(loc, player);
 	});
 
