@@ -105,7 +105,7 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 			}
 			batches.get(0).clear();
 			conn.setAutoCommit(true);
-			FingerprintPlugin.log("Batch 0 Finish: " + (System.currentTimeMillis() - currentTime) + " ms");
+			//FingerprintPlugin.log("Batch 0 Finish: " + (System.currentTimeMillis() - currentTime) + " ms");
 		} catch (SQLException e) {
 			logger.log(Level.SEVERE, "Failed to insert fingerprint container into db: ", e);
 		}
@@ -128,7 +128,7 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 			//FingerprintPlugin.log("Batch 1 part 1 Size: " + batches.get(1).size());
 			deleteFp.executeBatch();
 			conn.setAutoCommit(true);
-			FingerprintPlugin.log("Batch 1 part 1 Finish: " + (System.currentTimeMillis() - currentTime) + " ms");
+			//FingerprintPlugin.log("Batch 1 part 1 Finish: " + (System.currentTimeMillis() - currentTime) + " ms");
 		} catch (SQLException e) {
 			logger.log(Level.SEVERE, "Failed to update fingerprint in db: ", e);
 		}
@@ -183,7 +183,7 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 				}
 			}
 			batches.get(1).clear();
-			FingerprintPlugin.log("Batch 1 part 2 Finish: " + (System.currentTimeMillis() - currentTime) + " ms");
+			//FingerprintPlugin.log("Batch 1 part 2 Finish: " + (System.currentTimeMillis() - currentTime) + " ms");
 		} catch (SQLException e) {
 			logger.log(Level.SEVERE, "Failed to update fingerprint in db: ", e);
 		}
@@ -263,17 +263,17 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 			return;
 		}
 
-		logger.info("Updating a fingerprint container");
+		//logger.info("Updating a fingerprint container");
 
 		try(Connection conn = db.getConnection()){
 			Fingerprint fp;
 			while((fp = data.deletions.poll()) != null){
-				logger.info("Attempting deletion of fingerprint");
+				//logger.info("Attempting deletion of fingerprint");
 				if(fp.id != -1){
 					try(PreparedStatement deleteFp = conn.prepareStatement("DELETE FROM fingerprints WHERE id = ?;")){
 						deleteFp.setInt(1, fp.id);
 						boolean success = deleteFp.execute();
-						logger.info("Fingerprint Deleted?: " + success);
+						//logger.info("Fingerprint Deleted?: " + success);
 					}
 				}
 			}
@@ -283,10 +283,10 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 
 		try(Connection conn = db.getConnection()){
 			Fingerprint fp;
-			logger.info(String.format("Attempting insertion of fingerprints, size: %s, container id: %s", data.inserts.size(), data.id));
+			//logger.info(String.format("Attempting insertion of fingerprints, size: %s, container id: %s", data.inserts.size(), data.id));
 			while((fp = data.inserts.poll()) != null){
 				if(data.id != -1){
-					logger.info("Attempting insertion of fingerprint");
+					//logger.info("Attempting insertion of fingerprint");
 					//INSERT INTO fingerprints(container_id, reason, player_uuid) VALUES(?, ?, ?);
 					try(PreparedStatement insertFp = conn.prepareStatement("INSERT INTO fingerprints(" +
 							"container_id, reason, player_uuid, offset_x, offset_z, metadata) VALUES(?, ?, ?, ?, ?, ?);", Statement.RETURN_GENERATED_KEYS)){
@@ -309,7 +309,7 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 						insertFp.setBlob(6, blob);
 
 						int rowsAffected = insertFp.executeUpdate();
-						logger.info("Insertion of fingerprint: " + rowsAffected);
+						//logger.info("Insertion of fingerprint: " + rowsAffected);
 						if(rowsAffected != 0){
 							try(ResultSet generatedKeys = insertFp.getGeneratedKeys()){
 								if(generatedKeys.next()) {
@@ -333,14 +333,14 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 			return;
 		}
 
-		logger.info("Deleting a fingerprint container from the database");
+		//logger.info("Deleting a fingerprint container from the database");
 
 		try(Connection conn = db.getConnection();
 			PreparedStatement deleteFp = conn.prepareStatement("DELETE FROM fingerprint_containers WHERE " +
 					"chunk_x = ? AND chunk_z = ? AND world_id = ? AND x_offset = ? AND y = ? AND z_offset = ?");){
 			setDeleteDataStatement(deleteFp, data, coord);
 			boolean success = deleteFp.execute();
-			logger.info("Deleted Fingerprint?: " + success);
+			//logger.info("Deleted Fingerprint?: " + success);
 		}catch(SQLException e){
 			logger.log(Level.SEVERE, "Failed to load fingerprint container from db: ", e);
 		}
@@ -394,7 +394,7 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 		int chunkX = BlockBasedChunkMeta.toChunkCoord(x);
 		int chunkZ = BlockBasedChunkMeta.toChunkCoord(z);
 
-		logger.info("Grabbing id for container - getForLocation");
+		//logger.info("Grabbing id for container - getForLocation");
 
 		try(Connection conn = db.getConnection();
 			PreparedStatement selectContainer = conn.prepareStatement("SELECT id FROM fingerprint_containers WHERE " +
@@ -414,17 +414,17 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 
 			try(ResultSet crs = selectContainer.executeQuery()){
 				if(!crs.next()){
-					logger.info("No resulting id found - getForLocation");
+					//logger.info("No resulting id found - getForLocation");
 					return null;
 				}
 				int containerId = crs.getInt(1);
-				logger.info(String.format("Found ID for container: %s - getForLocation", containerId));
+				//logger.info(String.format("Found ID for container: %s - getForLocation", containerId));
 
 				World world = CivModCorePlugin.getInstance().getWorldIdManager().getWorldByInternalID(worldID);
 				Location loc = new Location(world, x, y, z);
 				FingerprintContainer container = new FingerprintContainer(containerId, loc, false);
 
-				logger.info("Grabbing all fingerprints for container - getForLocation");
+				//logger.info("Grabbing all fingerprints for container - getForLocation");
 
 				try(Connection conn1 = db.getConnection();
 				PreparedStatement selectFp = conn1.prepareStatement("SELECT id, reason, created_at, player_uuid, offset_x, offset_z, metadata FROM fingerprints WHERE container_id = ? ORDER BY created_at DESC;")){
@@ -462,7 +462,7 @@ public class FPContainerDAO extends TableStorageEngine<FingerprintContainer> {
 					}
 				}
 
-				logger.info("Finished grabbing id for container - getForLocation");
+				//logger.info("Finished grabbing id for container - getForLocation");
 				return container;
 			}
 		} catch (SQLException e) {

@@ -47,7 +47,7 @@ public class FingerprintListener implements Listener {
 
 	private static void handleMurderAssault(FingerprintReason reason, Player player, LivingEntity victim){
 		if(reason == null || player == null || victim == null){
-			FingerprintPlugin.log("MURDER/ASSAULT - REASON, PLAYER, OR VICTIM IS NULL");
+			//FingerprintPlugin.log("MURDER/ASSAULT - REASON, PLAYER, OR VICTIM IS NULL");
 			return;
 		} else if (FingerprintUtils.getClosestNonAir(victim.getLocation()) == null) {
 			return;
@@ -60,7 +60,7 @@ public class FingerprintListener implements Listener {
 		}else if(victim instanceof Player){
 			baseChance = reason.getSetting("pvp_chance", 0.1D);
 		}else{
-			FingerprintPlugin.log("MURDER/ASSAULT - NO VALID VICTIM");
+			//FingerprintPlugin.log("MURDER/ASSAULT - NO VALID VICTIM");
 			return;
 		}
 
@@ -81,14 +81,14 @@ public class FingerprintListener implements Listener {
 					if(FingerprintUtils.checkChance(chance)) {
 						createMurderAssaultFingerprint(reason, loc, player, victim);
 					}else{
-						FingerprintPlugin.log("MURDER - FAILED CHANCE");
+						//FingerprintPlugin.log("MURDER - FAILED CHANCE");
 					}
 				}
 			}
 		}else if(FingerprintUtils.checkChance(baseChance)){
 			createMurderAssaultFingerprint(reason, loc, player, victim);
 		}else{
-			FingerprintPlugin.log("MURDER/ASSAULT - FAILED CHANCE");
+			//FingerprintPlugin.log("MURDER/ASSAULT - FAILED CHANCE");
 		}
 
 	}
@@ -151,7 +151,7 @@ public class FingerprintListener implements Listener {
 
 		Block block = mainInv.getLocation().getBlock();
 		if(!(block.getState() instanceof Container)){
-			FingerprintPlugin.log("Attempted to do theft but wasn't container");
+			//FingerprintPlugin.log("Attempted to do theft but wasn't container");
 			return;
 		}
 
@@ -167,7 +167,7 @@ public class FingerprintListener implements Listener {
 
 		//double stackSize = item.getMaxStackSize() == 1D ? 1D : item.getMaxStackSize();
 		chance *= (double) itemStack.getAmount() / itemStack.getMaxStackSize();
-		FingerprintPlugin.log("Chance for theft: " + chance);
+		//FingerprintPlugin.log("Chance for theft: " + chance);
 
 		if(FingerprintUtils.checkChance(chance)) {
 			FingerprintUtils.addFingerprint(mainInv.getLocation(), player, FingerprintReason.THEFT);
@@ -217,7 +217,7 @@ public class FingerprintListener implements Listener {
 
 		if(!(event.getEntity() instanceof LivingEntity damaged) ||
 				!(event.getDamager() instanceof Player damager)){
-			FingerprintPlugin.log("ASSAULT - NO DAMAGED OR DAMAGER");
+			//FingerprintPlugin.log("ASSAULT - NO DAMAGED OR DAMAGER");
 			return;
 		}
 
@@ -233,7 +233,7 @@ public class FingerprintListener implements Listener {
 		LivingEntity killed = event.getEntity();
 		Player killer = event.getEntity().getKiller();
 		if(killer == null){
-			FingerprintPlugin.log("MURDER - NO KILLER");
+			//FingerprintPlugin.log("MURDER - NO KILLER");
 			return;
 		}
 
@@ -267,7 +267,7 @@ public class FingerprintListener implements Listener {
 		if(FingerprintUtils.checkChance(chance)) {
 			FingerprintUtils.addFingerprint(loc, player, FingerprintReason.RUMMAGING);
 		}else{
-			FingerprintPlugin.log("RUMMAGE CONTAINER - FAILED CHANCE: " + chance);
+			//FingerprintPlugin.log("RUMMAGE CONTAINER - FAILED CHANCE: " + chance);
 		}
 	}
 

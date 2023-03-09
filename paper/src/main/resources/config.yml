@@ -50,8 +50,8 @@ effects:
   trespassEffect: ELECTRIC_SPARK
   rummageEffect: ELECTRIC_SPARK
   theftEffect: ELECTRIC_SPARK
-  assaultEffect: REDSTONE
-  murderEffect: REDSTONE
+  assaultEffect: GLOW
+  murderEffect: GLOW
   vandaEffect: ELECTRIC_SPARK
   
 

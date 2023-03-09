@@ -181,7 +181,7 @@ public class FingerprintUtils {
 
 	public static boolean checkChance(double chance){
 		double rand = RANDOM.nextDouble();
-		FingerprintPlugin.log(String.format("Chance check[%s<=%s|%s]", rand, chance, rand <= chance));
+		//FingerprintPlugin.log(String.format("Chance check[%s<=%s|%s]", rand, chance, rand <= chance));
 		return rand <= chance;
 	}
 
